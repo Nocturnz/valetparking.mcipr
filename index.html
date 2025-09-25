@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCIPR Valet Parking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -152,6 +152,13 @@
 
 
     <script>
+        const valetForm = document.getElementById('valetForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const attendantNameInput = document.getElementById('attendantName');
+        const carTagInput = document.getElementById('carTag');
+        const submitButton = valetForm.querySelector('button[type="submit"]');
+
         const reloadButton = document.getElementById('reloadButton');
         const clearButton = document.getElementById('clearButton');
         const confirmationModal = document.getElementById('confirmationModal');
@@ -159,6 +166,15 @@
         const confirmButton = document.getElementById('confirmButton');
         const cancelButton = document.getElementById('cancelButton');
         
+        const checkInTab = document.getElementById('checkInTab');
+        const checkOutTab = document.getElementById('checkOutTab');
+        const inOutTab = document.getElementById('inOutTab');
+
+        const checkInFields = document.getElementById('checkInFields');
+        const checkOutFields = document.getElementById('checkOutFields');
+        const inOutFields = document.getElementById('inOutFields');
+        
+        let formMode = 'check-in';
         let currentConfirmAction = null;
 
         function showConfirmation(message, callback) {
@@ -200,49 +216,55 @@
                 location.reload();
             });
         });
-        
-        const valetForm = document.getElementById('valetForm');
-        const successMessage = document.getElementById('successMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const attendantNameInput = document.getElementById('attendantName');
-        const carTagInput = document.getElementById('carTag');
-        const submitButton = valetForm.querySelector('button[type="submit"]');
 
-        const checkInTab = document.getElementById('checkInTab');
-        const checkOutTab = document.getElementById('checkOutTab');
-        const inOutTab = document.getElementById('inOutTab');
+        function saveFormState() {
+            const state = {
+                attendantName: attendantNameInput.value,
+                carTag: carTagInput.value,
+                guestName: document.getElementById('guestName').value,
+                roomNumber: document.getElementById('roomNumber').value,
+                carMake: document.getElementById('carMake').value,
+                carModel: document.getElementById('carModel').value,
+                carColor: document.getElementById('carColor').value,
+                licensePlate: document.getElementById('licensePlate').value,
+                arrivalDate: document.getElementById('arrivalDate').value,
+                departureDate: document.getElementById('departureDate').value,
+                inOutStatus: document.querySelector('input[name="inOutStatus"]:checked')?.value || 'Out'
+            };
+            localStorage.setItem('valetFormState', JSON.stringify(state));
+        }
 
-        const checkInFields = document.getElementById('checkInFields');
-        const checkOutFields = document.getElementById('checkOutFields');
-        const inOutFields = document.getElementById('inOutFields');
-        
-        let formMode = 'check-in';
+        function loadFormState() {
+            const savedState = localStorage.getItem('valetFormState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                attendantNameInput.value = state.attendantName || '';
+                carTagInput.value = state.carTag || '';
+                document.getElementById('guestName').value = state.guestName || '';
+                document.getElementById('roomNumber').value = state.roomNumber || '';
+                document.getElementById('carMake').value = state.carMake || '';
+                document.getElementById('carModel').value = state.carModel || '';
+                document.getElementById('carColor').value = state.carColor || '';
+                document.getElementById('licensePlate').value = state.licensePlate || '';
+                document.getElementById('arrivalDate').value = state.arrivalDate || '';
+                document.getElementById('departureDate').value = state.departureDate || '';
+                
+                const inOutStatus = state.inOutStatus || 'Out';
+                const radioToSelect = document.querySelector(`input[name="inOutStatus"][value="${inOutStatus}"]`);
+                if(radioToSelect) radioToSelect.checked = true;
+            }
+        }
 
-        function clearForm() {
-            Array.from(valetForm.elements).forEach((element) => {
-                if (element.id !== 'attendantName' && element.tagName === 'INPUT') {
-                     switch (element.type) {
-                        case 'text':
-                        case 'date':
-                            element.value = '';
-                            break;
-                        case 'radio':
-                            if (element.name === 'inOutStatus' && element.value === 'Out') {
-                                element.checked = true;
-                            } else {
-                                element.checked = false;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            });
+        function clearFormAndPreserveAttendant() {
+            const currentAttendantName = attendantNameInput.value;
+            valetForm.reset(); 
+            attendantNameInput.value = currentAttendantName;
             carTagInput.focus();
+            saveFormState(); 
         }
 
         clearButton.addEventListener('click', () => {
-            showConfirmation('Are you sure you want to clear the form?', clearForm);
+            showConfirmation('Are you sure you want to clear the form?', clearFormAndPreserveAttendant);
         });
 
         function setRequiredForCheckin(isRequired) {
@@ -281,17 +303,6 @@
         checkOutTab.addEventListener('click', () => switchTab('check-out'));
         inOutTab.addEventListener('click', () => switchTab('in-out'));
 
-        function loadAttendantName() {
-            const savedName = localStorage.getItem('valetAttendantName');
-            if (savedName) attendantNameInput.value = savedName;
-        }
-
-        function saveAttendantName() {
-            localStorage.setItem('valetAttendantName', attendantNameInput.value);
-        }
-
-        attendantNameInput.addEventListener('input', saveAttendantName);
-
         function showMessage(element, duration = 3000) {
             element.classList.remove('hidden');
             element.classList.add('opacity-100');
@@ -309,6 +320,8 @@
             return `${month}.${day}.${year.slice(-2)}`;
         }
         
+        valetForm.addEventListener('input', saveFormState);
+
         valetForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             
@@ -390,7 +403,7 @@
                 await Promise.all(submissions);
                 
                 showMessage(successMessage);
-                clearForm();
+                clearFormAndPreserveAttendant();
 
             } catch (error) {
                 console.error('Form submission error:', error);
@@ -401,8 +414,10 @@
             }
         });
         
-        switchTab('check-in');
-        loadAttendantName();
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('check-in');
+            loadFormState();
+        });
 
     </script>
 
