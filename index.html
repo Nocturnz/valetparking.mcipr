@@ -36,12 +36,6 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-start min-h-screen pt-10 px-4">
 
-    <button id="reloadButton" class="fixed top-4 right-16 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 z-50">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 4v6h-6"></path>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
-    </button>
     <button id="clearButton" class="fixed top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 z-50">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -132,11 +126,11 @@
         </form>
     </div>
     
-    <div id="successMessage" class="hidden fixed top-5 right-5 bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
+    <div id="successMessage" class="hidden fixed top-4 right-20 bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
         <p>Submitted!</p>
     </div>
 
-    <div id="errorMessage" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
+    <div id="errorMessage" class="hidden fixed top-4 right-20 bg-red-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
         <p>Submission Failed. Please try again.</p>
     </div>
 
@@ -159,7 +153,6 @@
         const carTagInput = document.getElementById('carTag');
         const submitButton = valetForm.querySelector('button[type="submit"]');
 
-        const reloadButton = document.getElementById('reloadButton');
         const clearButton = document.getElementById('clearButton');
         const confirmationModal = document.getElementById('confirmationModal');
         const confirmationMessage = document.getElementById('confirmationMessage');
@@ -210,12 +203,6 @@
         });
 
         cancelButton.addEventListener('click', hideConfirmation);
-
-        reloadButton.addEventListener('click', () => {
-            showConfirmation('Are you sure you want to reload?', () => {
-                location.reload();
-            });
-        });
 
         function saveFormState() {
             const state = {
