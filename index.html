@@ -232,27 +232,18 @@
                 formData.append('entry.1721956859', document.getElementById('arrivalDate').value.replaceAll('-', ''));
                 formData.append('entry.1517497640', document.getElementById('departureDate').value.replaceAll('-', ''));
                 formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
-            } else { // Check-out mode
+            } else {
                 const earlyCheckoutValue = document.querySelector('input[name="earlyCheckout"]:checked').value;
                 const newDepartureDate = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value.replaceAll('-', '') : '';
-
-                // --- ACTION REQUIRED ---
-                // Create a new Google Form for checkouts with the following fields:
-                // 1. Attendant Name (Short answer)
-                // 2. Car Tag # (Short answer)
-                // 3. Checking Out Early? (Multiple choice: Yes/No)
-                // 4. New Departure Date (Short answer)
-                // Then, replace the placeholder URL and entry IDs below.
                 
-                formData.append('entry.YOUR_ID_HERE_1', document.getElementById('attendantName').value.trim()); // Attendant Name
-                formData.append('entry.YOUR_ID_HERE_2', document.getElementById('carTag').value.trim()); // Car Tag #
-                formData.append('entry.YOUR_ID_HERE_3', earlyCheckoutValue); // Checking out early?
-                formData.append('entry.YOUR_ID_HERE_4', newDepartureDate); // New Departure Date
+                formData.append('entry.YOUR_ID_HERE_1', document.getElementById('attendantName').value.trim());
+                formData.append('entry.YOUR_ID_HERE_2', document.getElementById('carTag').value.trim());
+                formData.append('entry.YOUR_ID_HERE_3', earlyCheckoutValue);
+                formData.append('entry.YOUR_ID_HERE_4', newDepartureDate);
                 formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_NEW_FORM_URL_HERE/formResponse';
             }
             
             try {
-                // A quick check to ensure the placeholder URL has been replaced for check-out mode
                 if (formMode === 'check-out' && formResponseUrl.includes('YOUR_NEW_FORM_URL_HERE')) {
                    throw new Error("Checkout form URL has not been configured.");
                 }
@@ -277,7 +268,6 @@
             }
         });
 
-        // Initialize form state
         setRequiredForCheckin(true);
         loadAttendantName();
 
