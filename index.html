@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCIPR Valet Parking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,21 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
             border-color: #3B82F6;
         }
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .tab-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .tab-button.active {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .tab-button:not(.active) {
+            background-color: #4B5563;
+            color: #D1D5DB;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-start min-h-screen pt-10 px-4">
@@ -27,6 +42,11 @@
             <p class="text-gray-400 mt-2">Valet Parking</p>
         </div>
         
+        <div class="flex border border-gray-600 rounded-lg mb-6">
+            <button id="checkInTab" class="tab-button active w-1/2 p-3 rounded-l-lg font-semibold">Check-In</button>
+            <button id="checkOutTab" class="tab-button w-1/2 p-3 rounded-r-lg font-semibold">Check-Out</button>
+        </div>
+
         <form id="valetForm">
             <div class="space-y-6">
                 <div>
@@ -39,50 +59,67 @@
                     <input type="text" id="carTag" name="carTag" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                 </div>
                 
-                <div>
-                    <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
-                    <input type="text" id="guestName" name="guestName" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                <div id="checkInFields" class="space-y-6">
+                    <div>
+                        <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
+                        <input type="text" id="guestName" name="guestName" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
+                        <input type="text" id="roomNumber" name="roomNumber" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
+                        <input type="text" id="carMake" name="carMake" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
+                        <input type="text" id="carModel" name="carModel" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
+                        <input type="text" id="carColor" name="carColor" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
+                        <input type="text" id="licensePlate" name="licensePlate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+
+                    <div>
+                        <label for="arrivalDate" class="block text-sm font-medium text-gray-400 mb-2">Arrival Date</label>
+                        <input type="date" id="arrivalDate" name="arrivalDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
+                    </div>
+
+                    <div>
+                        <label for="departureDate" class="block text-sm font-medium text-gray-400 mb-2">Departure Date</label>
+                        <input type="date" id="departureDate" name="departureDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
+                    </div>
                 </div>
 
-                <div>
-                    <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
-                    <input type="text" id="roomNumber" name="roomNumber" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                <div id="checkOutFields" class="hidden space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Checking out early?</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="earlyCheckout" value="Yes" class="mr-2"> Yes</label>
+                            <label><input type="radio" name="earlyCheckout" value="No" checked class="mr-2"> No</label>
+                        </div>
+                    </div>
+                    <div id="newDepartureDateWrapper" class="hidden">
+                        <label for="newDepartureDate" class="block text-sm font-medium text-gray-400 mb-2">New Departure Date</label>
+                        <input type="date" id="newDepartureDate" name="newDepartureDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
+                    </div>
                 </div>
 
-                <div>
-                    <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
-                    <input type="text" id="carMake" name="carMake" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-
-                <div>
-                    <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
-                    <input type="text" id="carModel" name="carModel" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-
-                <div>
-                    <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
-                    <input type="text" id="carColor" name="carColor" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-
-                <div>
-                    <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
-                    <input type="text" id="licensePlate" name="licensePlate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-
-                <div>
-                    <label for="arrivalDate" class="block text-sm font-medium text-gray-400 mb-2">Arrival Date</label>
-                    <input type="date" id="arrivalDate" name="arrivalDate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
-                </div>
-
-                <div>
-                    <label for="departureDate" class="block text-sm font-medium text-gray-400 mb-2">Departure Date</label>
-                    <input type="date" id="departureDate" name="departureDate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
-                </div>
             </div>
             
             <div class="mt-8">
                 <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
-                    Submit Car
+                    Submit
                 </button>
             </div>
         </form>
@@ -92,11 +129,64 @@
         <p>Submitted!</p>
     </div>
 
+    <div id="errorMessage" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
+        <p>Submission Failed. Please try again.</p>
+    </div>
+
 
     <script>
         const valetForm = document.getElementById('valetForm');
         const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
         const attendantNameInput = document.getElementById('attendantName');
+        const submitButton = valetForm.querySelector('button[type="submit"]');
+
+        const checkInTab = document.getElementById('checkInTab');
+        const checkOutTab = document.getElementById('checkOutTab');
+        const checkInFields = document.getElementById('checkInFields');
+        const checkOutFields = document.getElementById('checkOutFields');
+        const newDepartureDateWrapper = document.getElementById('newDepartureDateWrapper');
+        
+        let formMode = 'check-in';
+
+        function setRequiredForCheckin(isRequired) {
+            checkInFields.querySelectorAll('input').forEach(input => {
+                input.required = isRequired;
+            });
+        }
+
+        checkInTab.addEventListener('click', () => {
+            formMode = 'check-in';
+            checkInTab.classList.add('active');
+            checkOutTab.classList.remove('active');
+            checkInFields.classList.remove('hidden');
+            checkOutFields.classList.add('hidden');
+            submitButton.textContent = 'Submit Car';
+            setRequiredForCheckin(true);
+        });
+
+        checkOutTab.addEventListener('click', () => {
+            formMode = 'check-out';
+            checkOutTab.classList.add('active');
+            checkInTab.classList.remove('active');
+            checkOutFields.classList.remove('hidden');
+            checkInFields.classList.add('hidden');
+            submitButton.textContent = 'Submit Checkout';
+            setRequiredForCheckin(false);
+        });
+
+        document.querySelectorAll('input[name="earlyCheckout"]').forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                if (event.target.value === 'Yes') {
+                    newDepartureDateWrapper.classList.remove('hidden');
+                    document.getElementById('newDepartureDate').required = true;
+                } else {
+                    newDepartureDateWrapper.classList.add('hidden');
+                    document.getElementById('newDepartureDate').required = false;
+                }
+            });
+        });
+
 
         function loadAttendantName() {
             const savedName = localStorage.getItem('valetAttendantName');
@@ -111,57 +201,84 @@
 
         attendantNameInput.addEventListener('input', saveAttendantName);
 
-        function showSuccessMessage() {
-            successMessage.classList.remove('hidden');
-            successMessage.classList.add('opacity-100');
+        function showMessage(element, duration = 3000) {
+            element.classList.remove('hidden');
+            element.classList.add('opacity-100');
             setTimeout(() => {
-                successMessage.classList.remove('opacity-100');
-                successMessage.classList.add('hidden');
-            }, 3000);
+                element.classList.remove('opacity-100');
+                element.classList.add('hidden');
+            }, duration);
         }
         
-        valetForm.addEventListener('submit', function(event) {
+        valetForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-
-            const attendantName = document.getElementById('attendantName').value.trim();
-            const carTag = document.getElementById('carTag').value.trim();
-            const guestName = document.getElementById('guestName').value.trim();
-            const roomNumber = document.getElementById('roomNumber').value.trim();
-            const carMake = document.getElementById('carMake').value.trim();
-            const carModel = document.getElementById('carModel').value.trim();
-            const carColor = document.getElementById('carColor').value.trim();
-            const licensePlate = document.getElementById('licensePlate').value.trim();
-            const arrivalDateValue = document.getElementById('arrivalDate').value;
-            const departureDateValue = document.getElementById('departureDate').value;
-
-            const arrivalDate = arrivalDateValue.replaceAll('-', '');
-            const departureDate = departureDateValue.replaceAll('-', '');
-
-            const baseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/viewform?usp=pp_url';
             
-            const urlParams = new URLSearchParams({
-                'entry.829031142': attendantName,
-                'entry.397217549': carTag,
-                'entry.712526638': guestName,
-                'entry.626936939': roomNumber,
-                'entry.649767439': carMake,
-                'entry.1972256179': carModel,
-                'entry.1974586787': carColor,
-                'entry.1014905924': licensePlate,
-                'entry.1721956859': arrivalDate,
-                'entry.1517497640': departureDate
-            });
+            submitButton.disabled = true;
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Submitting...';
 
-            const finalUrl = `${baseUrl}&${urlParams.toString()}`;
+            let formData = new FormData();
+            let formResponseUrl = '';
 
-            window.open(finalUrl, '_blank');
+            if (formMode === 'check-in') {
+                formData.append('entry.829031142', document.getElementById('attendantName').value.trim());
+                formData.append('entry.397217549', document.getElementById('carTag').value.trim());
+                formData.append('entry.712526638', document.getElementById('guestName').value.trim());
+                formData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
+                formData.append('entry.649767439', document.getElementById('carMake').value.trim());
+                formData.append('entry.1972256179', document.getElementById('carModel').value.trim());
+                formData.append('entry.1974586787', document.getElementById('carColor').value.trim());
+                formData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
+                formData.append('entry.1721956859', document.getElementById('arrivalDate').value.replaceAll('-', ''));
+                formData.append('entry.1517497640', document.getElementById('departureDate').value.replaceAll('-', ''));
+                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
+            } else { // Check-out mode
+                const earlyCheckoutValue = document.querySelector('input[name="earlyCheckout"]:checked').value;
+                const newDepartureDate = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value.replaceAll('-', '') : '';
+
+                // --- ACTION REQUIRED ---
+                // Create a new Google Form for checkouts with the following fields:
+                // 1. Attendant Name (Short answer)
+                // 2. Car Tag # (Short answer)
+                // 3. Checking Out Early? (Multiple choice: Yes/No)
+                // 4. New Departure Date (Short answer)
+                // Then, replace the placeholder URL and entry IDs below.
+                
+                formData.append('entry.YOUR_ID_HERE_1', document.getElementById('attendantName').value.trim()); // Attendant Name
+                formData.append('entry.YOUR_ID_HERE_2', document.getElementById('carTag').value.trim()); // Car Tag #
+                formData.append('entry.YOUR_ID_HERE_3', earlyCheckoutValue); // Checking out early?
+                formData.append('entry.YOUR_ID_HERE_4', newDepartureDate); // New Departure Date
+                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_NEW_FORM_URL_HERE/formResponse';
+            }
             
-            valetForm.reset();
-            loadAttendantName();
-            document.getElementById('carTag').focus();
-            showSuccessMessage();
+            try {
+                // A quick check to ensure the placeholder URL has been replaced for check-out mode
+                if (formMode === 'check-out' && formResponseUrl.includes('YOUR_NEW_FORM_URL_HERE')) {
+                   throw new Error("Checkout form URL has not been configured.");
+                }
+
+                await fetch(formResponseUrl, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                showMessage(successMessage);
+                valetForm.reset();
+                loadAttendantName();
+                document.getElementById('carTag').focus();
+
+            } catch (error) {
+                console.error('Form submission error:', error);
+                showMessage(errorMessage);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
         });
 
+        // Initialize form state
+        setRequiredForCheckin(true);
         loadAttendantName();
 
     </script>
