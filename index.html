@@ -43,8 +43,9 @@
         </div>
         
         <div class="flex border border-gray-600 rounded-lg mb-6">
-            <button id="checkInTab" class="tab-button active w-1/2 p-3 rounded-l-lg font-semibold">Check-In</button>
-            <button id="checkOutTab" class="tab-button w-1/2 p-3 rounded-r-lg font-semibold">Check-Out</button>
+            <button id="checkInTab" class="tab-button active w-1/3 p-3 rounded-l-lg font-semibold">Check-In</button>
+            <button id="checkOutTab" class="tab-button w-1/3 p-3 font-semibold">Check-Out</button>
+            <button id="inOutTab" class="tab-button w-1/3 p-3 rounded-r-lg font-semibold">In/Out</button>
         </div>
 
         <form id="valetForm">
@@ -64,37 +65,30 @@
                         <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
                         <input type="text" id="guestName" name="guestName" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
                         <input type="text" id="roomNumber" name="roomNumber" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
                         <input type="text" id="carMake" name="carMake" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
                         <input type="text" id="carModel" name="carModel" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
                         <input type="text" id="carColor" name="carColor" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
                         <input type="text" id="licensePlate" name="licensePlate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
                     <div>
                         <label for="arrivalDate" class="block text-sm font-medium text-gray-400 mb-2">Arrival Date</label>
                         <input type="date" id="arrivalDate" name="arrivalDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
                     </div>
-
                     <div>
                         <label for="departureDate" class="block text-sm font-medium text-gray-400 mb-2">Departure Date</label>
                         <input type="date" id="departureDate" name="departureDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
@@ -115,11 +109,21 @@
                     </div>
                 </div>
 
+                <div id="inOutFields" class="hidden space-y-6">
+                     <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Vehicle Status</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="inOutStatus" value="Out" checked class="mr-2"> Out</label>
+                            <label><input type="radio" name="inOutStatus" value="In" class="mr-2"> In</label>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             
             <div class="mt-8">
                 <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
-                    Submit
+                    Submit Car
                 </button>
             </div>
         </form>
@@ -143,8 +147,12 @@
 
         const checkInTab = document.getElementById('checkInTab');
         const checkOutTab = document.getElementById('checkOutTab');
+        const inOutTab = document.getElementById('inOutTab');
+
         const checkInFields = document.getElementById('checkInFields');
         const checkOutFields = document.getElementById('checkOutFields');
+        const inOutFields = document.getElementById('inOutFields');
+
         const newDepartureDateWrapper = document.getElementById('newDepartureDateWrapper');
         
         let formMode = 'check-in';
@@ -155,44 +163,43 @@
             });
         }
 
-        checkInTab.addEventListener('click', () => {
-            formMode = 'check-in';
-            checkInTab.classList.add('active');
-            checkOutTab.classList.remove('active');
-            checkInFields.classList.remove('hidden');
-            checkOutFields.classList.add('hidden');
-            submitButton.textContent = 'Submit Car';
-            setRequiredForCheckin(true);
-        });
+        function switchTab(newMode) {
+            formMode = newMode;
+            
+            checkInTab.classList.toggle('active', newMode === 'check-in');
+            checkOutTab.classList.toggle('active', newMode === 'check-out');
+            inOutTab.classList.toggle('active', newMode === 'in-out');
 
-        checkOutTab.addEventListener('click', () => {
-            formMode = 'check-out';
-            checkOutTab.classList.add('active');
-            checkInTab.classList.remove('active');
-            checkOutFields.classList.remove('hidden');
-            checkInFields.classList.add('hidden');
-            submitButton.textContent = 'Submit Checkout';
-            setRequiredForCheckin(false);
-        });
+            checkInFields.classList.toggle('hidden', newMode !== 'check-in');
+            checkOutFields.classList.toggle('hidden', newMode !== 'check-out');
+            inOutFields.classList.toggle('hidden', newMode !== 'in-out');
+            
+            setRequiredForCheckin(newMode === 'check-in');
+
+            if (newMode === 'check-in') {
+                submitButton.textContent = 'Submit Car';
+            } else if (newMode === 'check-out') {
+                submitButton.textContent = 'Submit Checkout';
+            } else {
+                submitButton.textContent = 'Log Status';
+            }
+        }
+
+        checkInTab.addEventListener('click', () => switchTab('check-in'));
+        checkOutTab.addEventListener('click', () => switchTab('check-out'));
+        inOutTab.addEventListener('click', () => switchTab('in-out'));
 
         document.querySelectorAll('input[name="earlyCheckout"]').forEach(radio => {
             radio.addEventListener('change', (event) => {
-                if (event.target.value === 'Yes') {
-                    newDepartureDateWrapper.classList.remove('hidden');
-                    document.getElementById('newDepartureDate').required = true;
-                } else {
-                    newDepartureDateWrapper.classList.add('hidden');
-                    document.getElementById('newDepartureDate').required = false;
-                }
+                const isEarly = event.target.value === 'Yes';
+                newDepartureDateWrapper.classList.toggle('hidden', !isEarly);
+                document.getElementById('newDepartureDate').required = isEarly;
             });
         });
 
-
         function loadAttendantName() {
             const savedName = localStorage.getItem('valetAttendantName');
-            if (savedName) {
-                attendantNameInput.value = savedName;
-            }
+            if (savedName) attendantNameInput.value = savedName;
         }
 
         function saveAttendantName() {
@@ -214,10 +221,8 @@
             if (!dateString) return '';
             const parts = dateString.split('-');
             if (parts.length !== 3) return dateString;
-            const year = parts[0].slice(-2);
-            const month = parts[1];
-            const day = parts[2];
-            return `${month}.${day}.${year}`;
+            const [year, month, day] = parts;
+            return `${month}.${day}.${year.slice(-2)}`;
         }
         
         valetForm.addEventListener('submit', async function(event) {
@@ -229,44 +234,50 @@
 
             let formData = new FormData();
             let formResponseUrl = '';
+            let formError = null;
+
+            const attendantName = document.getElementById('attendantName').value.trim();
+            const carTag = document.getElementById('carTag').value.trim();
 
             if (formMode === 'check-in') {
-                const arrivalDateValue = document.getElementById('arrivalDate').value;
-                const departureDateValue = document.getElementById('departureDate').value;
-
-                formData.append('entry.829031142', document.getElementById('attendantName').value.trim());
-                formData.append('entry.397217549', document.getElementById('carTag').value.trim());
+                formData.append('entry.829031142', attendantName);
+                formData.append('entry.397217549', carTag);
                 formData.append('entry.712526638', document.getElementById('guestName').value.trim());
                 formData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
                 formData.append('entry.649767439', document.getElementById('carMake').value.trim());
                 formData.append('entry.1972256179', document.getElementById('carModel').value.trim());
                 formData.append('entry.1974586787', document.getElementById('carColor').value.trim());
                 formData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
-                formData.append('entry.1721956859', formatDateForForm(arrivalDateValue));
-                formData.append('entry.1517497640', formatDateForForm(departureDateValue));
+                formData.append('entry.1721956859', formatDateForForm(document.getElementById('arrivalDate').value));
+                formData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
                 formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
-            } else {
+            } else if (formMode === 'check-out') {
                 const earlyCheckoutValue = document.querySelector('input[name="earlyCheckout"]:checked').value;
                 const newDepartureDateValue = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value : '';
-                const newDepartureDate = formatDateForForm(newDepartureDateValue);
                 
-                formData.append('entry.YOUR_ID_HERE_1', document.getElementById('attendantName').value.trim());
-                formData.append('entry.YOUR_ID_HERE_2', document.getElementById('carTag').value.trim());
-                formData.append('entry.YOUR_ID_HERE_3', earlyCheckoutValue);
-                formData.append('entry.YOUR_ID_HERE_4', newDepartureDate);
-                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_NEW_FORM_URL_HERE/formResponse';
+                formData.append('entry.CHECKOUT_ID_1', attendantName);
+                formData.append('entry.CHECKOUT_ID_2', carTag);
+                formData.append('entry.CHECKOUT_ID_3', earlyCheckoutValue);
+                formData.append('entry.CHECKOUT_ID_4', formatDateForForm(newDepartureDateValue));
+                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_CHECKOUT_FORM_URL_HERE/formResponse';
+                if (formResponseUrl.includes('YOUR_')) formError = "Checkout form URL has not been configured.";
+
+            } else if (formMode === 'in-out') {
+                const status = document.querySelector('input[name="inOutStatus"]:checked').value;
+                const timestamp = new Date().toLocaleString();
+
+                formData.append('entry.INOUT_ID_1', attendantName);
+                formData.append('entry.INOUT_ID_2', carTag);
+                formData.append('entry.INOUT_ID_3', status);
+                formData.append('entry.INOUT_ID_4', timestamp);
+                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_INOUT_FORM_URL_HERE/formResponse';
+                if (formResponseUrl.includes('YOUR_')) formError = "In/Out form URL has not been configured.";
             }
             
             try {
-                if (formMode === 'check-out' && formResponseUrl.includes('YOUR_NEW_FORM_URL_HERE')) {
-                   throw new Error("Checkout form URL has not been configured.");
-                }
+                if (formError) throw new Error(formError);
 
-                await fetch(formResponseUrl, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
+                await fetch(formResponseUrl, { method: 'POST', body: formData, mode: 'no-cors' });
                 
                 showMessage(successMessage);
                 valetForm.reset();
@@ -281,8 +292,8 @@
                 submitButton.textContent = originalButtonText;
             }
         });
-
-        setRequiredForCheckin(true);
+        
+        switchTab('check-in');
         loadAttendantName();
 
     </script>
