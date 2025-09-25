@@ -96,17 +96,7 @@
                 </div>
 
                 <div id="checkOutFields" class="hidden space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Checking out early?</label>
-                        <div class="flex items-center space-x-4">
-                            <label><input type="radio" name="earlyCheckout" value="Yes" class="mr-2"> Yes</label>
-                            <label><input type="radio" name="earlyCheckout" value="No" checked class="mr-2"> No</label>
-                        </div>
-                    </div>
-                    <div id="newDepartureDateWrapper" class="hidden">
-                        <label for="newDepartureDate" class="block text-sm font-medium text-gray-400 mb-2">New Departure Date</label>
-                        <input type="date" id="newDepartureDate" name="newDepartureDate" class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
-                    </div>
+                    <!-- This section is now intentionally blank -->
                 </div>
 
                 <div id="inOutFields" class="hidden space-y-6">
@@ -152,8 +142,6 @@
         const checkInFields = document.getElementById('checkInFields');
         const checkOutFields = document.getElementById('checkOutFields');
         const inOutFields = document.getElementById('inOutFields');
-
-        const newDepartureDateWrapper = document.getElementById('newDepartureDateWrapper');
         
         let formMode = 'check-in';
 
@@ -188,14 +176,6 @@
         checkInTab.addEventListener('click', () => switchTab('check-in'));
         checkOutTab.addEventListener('click', () => switchTab('check-out'));
         inOutTab.addEventListener('click', () => switchTab('in-out'));
-
-        document.querySelectorAll('input[name="earlyCheckout"]').forEach(radio => {
-            radio.addEventListener('change', (event) => {
-                const isEarly = event.target.value === 'Yes';
-                newDepartureDateWrapper.classList.toggle('hidden', !isEarly);
-                document.getElementById('newDepartureDate').required = isEarly;
-            });
-        });
 
         function loadAttendantName() {
             const savedName = localStorage.getItem('valetAttendantName');
@@ -252,15 +232,16 @@
                 formData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
                 formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
             } else if (formMode === 'check-out') {
-                const earlyCheckoutValue = document.querySelector('input[name="earlyCheckout"]:checked').value;
-                const newDepartureDateValue = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value : '';
+                const now = new Date();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const year = String(now.getFullYear()).slice(-2);
+                const systemDate = `${month}.${day}.${year}`;
                 
-                formData.append('entry.CHECKOUT_ID_1', attendantName);
-                formData.append('entry.CHECKOUT_ID_2', carTag);
-                formData.append('entry.CHECKOUT_ID_3', earlyCheckoutValue);
-                formData.append('entry.CHECKOUT_ID_4', formatDateForForm(newDepartureDateValue));
-                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_CHECKOUT_FORM_URL_HERE/formResponse';
-                if (formResponseUrl.includes('YOUR_')) formError = "Checkout form URL has not been configured.";
+                formData.append('entry.1845522591', attendantName);
+                formData.append('entry.1266499904', carTag);
+                formData.append('entry.1075321922', systemDate);
+                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
 
             } else if (formMode === 'in-out') {
                 const status = document.querySelector('input[name="inOutStatus"]:checked').value;
