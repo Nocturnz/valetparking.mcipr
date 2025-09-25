@@ -146,7 +146,11 @@
 
         function setRequiredForCheckin(isRequired) {
             checkInFields.querySelectorAll('input').forEach(input => {
-                input.required = isRequired;
+                if (input.id === 'guestName' || input.id === 'roomNumber' || input.id === 'arrivalDate' || input.id === 'departureDate') {
+                    input.required = false;
+                } else {
+                    input.required = isRequired;
+                }
             });
         }
 
@@ -197,7 +201,7 @@
         }
 
         function formatDateForForm(dateString) {
-            if (!dateString) return '';
+            if (!dateString) return 'N/A';
             const parts = dateString.split('-');
             if (parts.length !== 3) return dateString;
             const [year, month, day] = parts;
@@ -206,6 +210,20 @@
         
         valetForm.addEventListener('submit', async function(event) {
             event.preventDefault();
+            
+            if (formMode === 'check-in') {
+                const roomNumberValue = document.getElementById('roomNumber').value.trim();
+                const guestNameValue = document.getElementById('guestName').value.trim();
+
+                if (roomNumberValue !== '' && guestNameValue === '') {
+                    const p = errorMessage.querySelector('p');
+                    const originalText = p.textContent;
+                    p.textContent = 'Guest Name is required when Room Number is provided.';
+                    showMessage(errorMessage);
+                    setTimeout(() => { p.textContent = originalText; }, 3000);
+                    return;
+                }
+            }
             
             submitButton.disabled = true;
             const originalButtonText = submitButton.textContent;
@@ -291,4 +309,3 @@
 
 </body>
 </html>
-
