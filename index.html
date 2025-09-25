@@ -209,6 +209,16 @@
                 element.classList.add('hidden');
             }, duration);
         }
+
+        function formatDateForForm(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            const year = parts[0].slice(-2);
+            const month = parts[1];
+            const day = parts[2];
+            return `${month}.${day}.${year}`;
+        }
         
         valetForm.addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -221,6 +231,9 @@
             let formResponseUrl = '';
 
             if (formMode === 'check-in') {
+                const arrivalDateValue = document.getElementById('arrivalDate').value;
+                const departureDateValue = document.getElementById('departureDate').value;
+
                 formData.append('entry.829031142', document.getElementById('attendantName').value.trim());
                 formData.append('entry.397217549', document.getElementById('carTag').value.trim());
                 formData.append('entry.712526638', document.getElementById('guestName').value.trim());
@@ -229,12 +242,13 @@
                 formData.append('entry.1972256179', document.getElementById('carModel').value.trim());
                 formData.append('entry.1974586787', document.getElementById('carColor').value.trim());
                 formData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
-                formData.append('entry.1721956859', document.getElementById('arrivalDate').value.replaceAll('-', ''));
-                formData.append('entry.1517497640', document.getElementById('departureDate').value.replaceAll('-', ''));
+                formData.append('entry.1721956859', formatDateForForm(arrivalDateValue));
+                formData.append('entry.1517497640', formatDateForForm(departureDateValue));
                 formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
             } else {
                 const earlyCheckoutValue = document.querySelector('input[name="earlyCheckout"]:checked').value;
-                const newDepartureDate = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value.replaceAll('-', '') : '';
+                const newDepartureDateValue = earlyCheckoutValue === 'Yes' ? document.getElementById('newDepartureDate').value : '';
+                const newDepartureDate = formatDateForForm(newDepartureDateValue);
                 
                 formData.append('entry.YOUR_ID_HERE_1', document.getElementById('attendantName').value.trim());
                 formData.append('entry.YOUR_ID_HERE_2', document.getElementById('carTag').value.trim());
