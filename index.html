@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Valet Parking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+            border-color: #3B82F6;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-start min-h-screen pt-10 px-4">
+
+    <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-8 mb-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white">Valet Parking</h1>
+            <p class="text-gray-400 mt-2">Enter details to prefill the Google Form.</p>
+        </div>
+        
+        <form id="valetForm">
+            <div class="space-y-6">
+                <div>
+                    <label for="attendantName" class="block text-sm font-medium text-gray-400 mb-2">Attendant Name</label>
+                    <input type="text" id="attendantName" name="attendantName" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="carTag" class="block text-sm font-medium text-gray-400 mb-2">Car Tag #</label>
+                    <input type="text" id="carTag" name="carTag" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+                
+                <div>
+                    <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
+                    <input type="text" id="guestName" name="guestName" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
+                    <input type="text" id="roomNumber" name="roomNumber" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
+                    <input type="text" id="carMake" name="carMake" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
+                    <input type="text" id="carModel" name="carModel" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
+                    <input type="text" id="carColor" name="carColor" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
+                    <input type="text" id="licensePlate" name="licensePlate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+
+                <div>
+                    <label for="arrivalDate" class="block text-sm font-medium text-gray-400 mb-2">Arrival Date</label>
+                    <input type="date" id="arrivalDate" name="arrivalDate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
+                </div>
+
+                <div>
+                    <label for="departureDate" class="block text-sm font-medium text-gray-400 mb-2">Departure Date</label>
+                    <input type="date" id="departureDate" name="departureDate" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
+                    Open Google Form
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="successMessage" class="hidden fixed top-5 right-5 bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
+        <p>Prefill link opened successfully!</p>
+    </div>
+
+
+    <script>
+        const valetForm = document.getElementById('valetForm');
+        const successMessage = document.getElementById('successMessage');
+        const attendantNameInput = document.getElementById('attendantName');
+
+        function loadAttendantName() {
+            const savedName = localStorage.getItem('valetAttendantName');
+            if (savedName) {
+                attendantNameInput.value = savedName;
+            }
+        }
+
+        function saveAttendantName() {
+            localStorage.setItem('valetAttendantName', attendantNameInput.value);
+        }
+
+        attendantNameInput.addEventListener('input', saveAttendantName);
+
+        function showSuccessMessage() {
+            successMessage.classList.remove('hidden');
+            successMessage.classList.add('opacity-100');
+            setTimeout(() => {
+                successMessage.classList.remove('opacity-100');
+                successMessage.classList.add('hidden');
+            }, 3000);
+        }
+        
+        valetForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const attendantName = document.getElementById('attendantName').value.trim();
+            const carTag = document.getElementById('carTag').value.trim();
+            const guestName = document.getElementById('guestName').value.trim();
+            const roomNumber = document.getElementById('roomNumber').value.trim();
+            const carMake = document.getElementById('carMake').value.trim();
+            const carModel = document.getElementById('carModel').value.trim();
+            const carColor = document.getElementById('carColor').value.trim();
+            const licensePlate = document.getElementById('licensePlate').value.trim();
+            const arrivalDateValue = document.getElementById('arrivalDate').value;
+            const departureDateValue = document.getElementById('departureDate').value;
+
+            const arrivalDate = arrivalDateValue.replaceAll('-', '');
+            const departureDate = departureDateValue.replaceAll('-', '');
+
+            const baseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/viewform?usp=pp_url';
+            
+            const urlParams = new URLSearchParams({
+                'entry.829031142': attendantName,
+                'entry.397217549': carTag,
+                'entry.712526638': guestName,
+                'entry.626936939': roomNumber,
+                'entry.649767439': carMake,
+                'entry.1972256179': carModel,
+                'entry.1974586787': carColor,
+                'entry.1014905924': licensePlate,
+                'entry.1721956859': arrivalDate,
+                'entry.1517497640': departureDate
+            });
+
+            const finalUrl = `${baseUrl}&${urlParams.toString()}`;
+
+            window.open(finalUrl, '_blank');
+            
+            valetForm.reset();
+            loadAttendantName();
+            document.getElementById('carTag').focus();
+            showSuccessMessage();
+        });
+
+        loadAttendantName();
+
+    </script>
+
+</body>
+</html>
+
