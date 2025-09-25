@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>MCIPR Valet Parking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,12 +140,67 @@
         <p>Submission Failed. Please try again.</p>
     </div>
 
+    <div id="confirmationModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm transform transition-all duration-300 scale-95 opacity-0">
+            <p id="confirmationMessage" class="text-white text-lg mb-6 text-center"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmButton" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 transition duration-200">Confirm</button>
+                <button id="cancelButton" class="px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-400 transition duration-200">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const reloadButton = document.getElementById('reloadButton');
         const clearButton = document.getElementById('clearButton');
-        reloadButton.addEventListener('click', () => location.reload());
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
+        
+        let currentConfirmAction = null;
 
+        function showConfirmation(message, callback) {
+            confirmationMessage.textContent = message;
+            currentConfirmAction = callback;
+            
+            confirmationModal.classList.remove('hidden');
+            setTimeout(() => {
+                confirmationModal.classList.remove('opacity-0');
+                const modalContent = confirmationModal.firstElementChild;
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function hideConfirmation() {
+            const modalContent = confirmationModal.firstElementChild;
+            modalContent.classList.remove('opacity-100', 'scale-100');
+            modalContent.classList.add('opacity-0', 'scale-95');
+            confirmationModal.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                confirmationModal.classList.add('hidden');
+                currentConfirmAction = null;
+            }, 300);
+        }
+
+        confirmButton.addEventListener('click', () => {
+            if (typeof currentConfirmAction === 'function') {
+                currentConfirmAction();
+            }
+            hideConfirmation();
+        });
+
+        cancelButton.addEventListener('click', hideConfirmation);
+
+        reloadButton.addEventListener('click', () => {
+            showConfirmation('Are you sure you want to reload?', () => {
+                location.reload();
+            });
+        });
+        
         const valetForm = document.getElementById('valetForm');
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
@@ -186,7 +241,9 @@
             carTagInput.focus();
         }
 
-        clearButton.addEventListener('click', clearForm);
+        clearButton.addEventListener('click', () => {
+            showConfirmation('Are you sure you want to clear the form?', clearForm);
+        });
 
         function setRequiredForCheckin(isRequired) {
             checkInFields.querySelectorAll('input').forEach(input => {
