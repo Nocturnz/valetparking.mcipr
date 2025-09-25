@@ -245,14 +245,11 @@
 
             } else if (formMode === 'in-out') {
                 const status = document.querySelector('input[name="inOutStatus"]:checked').value;
-                const timestamp = new Date().toLocaleString();
-
-                formData.append('entry.INOUT_ID_1', attendantName);
-                formData.append('entry.INOUT_ID_2', carTag);
-                formData.append('entry.INOUT_ID_3', status);
-                formData.append('entry.INOUT_ID_4', timestamp);
-                formResponseUrl = 'https://docs.google.com/forms/d/e/YOUR_INOUT_FORM_URL_HERE/formResponse';
-                if (formResponseUrl.includes('YOUR_')) formError = "In/Out form URL has not been configured.";
+                
+                formData.append('entry.1604519976', attendantName);
+                formData.append('entry.1341342126', carTag);
+                formData.append('entry.1317651225', status);
+                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
             }
             
             try {
