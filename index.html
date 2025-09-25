@@ -55,7 +55,7 @@
                     <input type="text" id="attendantName" name="attendantName" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                 </div>
 
-                <div>
+                <div id="carTagDiv">
                     <label for="carTag" class="block text-sm font-medium text-gray-400 mb-2">Car Tag #</label>
                     <input type="text" id="carTag" name="carTag" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                 </div>
@@ -108,7 +108,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
             
             <div class="mt-8">
@@ -133,6 +132,7 @@
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
         const attendantNameInput = document.getElementById('attendantName');
+        const carTagInput = document.getElementById('carTag');
         const submitButton = valetForm.querySelector('button[type="submit"]');
 
         const checkInTab = document.getElementById('checkInTab');
@@ -168,7 +168,7 @@
                 submitButton.textContent = 'Submit Car';
             } else if (newMode === 'check-out') {
                 submitButton.textContent = 'Submit Checkout';
-            } else {
+            } else if (newMode === 'in-out') {
                 submitButton.textContent = 'Log Status';
             }
         }
@@ -212,55 +212,69 @@
             const originalButtonText = submitButton.textContent;
             submitButton.textContent = 'Submitting...';
 
-            let formData = new FormData();
-            let formResponseUrl = '';
-            let formError = null;
+            let submissions = [];
 
-            const attendantName = document.getElementById('attendantName').value.trim();
-            const carTag = document.getElementById('carTag').value.trim();
+            const attendantName = attendantNameInput.value.trim();
 
             if (formMode === 'check-in') {
-                formData.append('entry.829031142', attendantName);
-                formData.append('entry.397217549', carTag);
-                formData.append('entry.712526638', document.getElementById('guestName').value.trim());
-                formData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
-                formData.append('entry.649767439', document.getElementById('carMake').value.trim());
-                formData.append('entry.1972256179', document.getElementById('carModel').value.trim());
-                formData.append('entry.1974586787', document.getElementById('carColor').value.trim());
-                formData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
-                formData.append('entry.1721956859', formatDateForForm(document.getElementById('arrivalDate').value));
-                formData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
-                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
+                const checkInFormData = new FormData();
+                checkInFormData.append('entry.829031142', attendantName);
+                checkInFormData.append('entry.397217549', carTagInput.value.trim());
+                checkInFormData.append('entry.712526638', document.getElementById('guestName').value.trim());
+                checkInFormData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
+                checkInFormData.append('entry.649767439', document.getElementById('carMake').value.trim());
+                checkInFormData.append('entry.1972256179', document.getElementById('carModel').value.trim());
+                checkInFormData.append('entry.1974586787', document.getElementById('carColor').value.trim());
+                checkInFormData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
+                checkInFormData.append('entry.1721956859', formatDateForForm(document.getElementById('arrivalDate').value));
+                checkInFormData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
+                const checkInUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
+                submissions.push(fetch(checkInUrl, { method: 'POST', body: checkInFormData, mode: 'no-cors' }));
+
+                const counterFormData = new FormData();
+                const now = new Date();
+                const pad = (num) => String(num).padStart(2, '0');
+                const hours = pad(now.getHours());
+                const minutes = pad(now.getMinutes());
+                const seconds = pad(now.getSeconds());
+                const month = pad(now.getMonth() + 1);
+                const day = pad(now.getDate());
+                const year = String(now.getFullYear()).slice(-2);
+                const timestamp = `${hours}:${minutes}:${seconds} ${month}.${day}.${year}`;
+                counterFormData.append('entry.16130364', timestamp);
+                const counterUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse';
+                submissions.push(fetch(counterUrl, { method: 'POST', body: counterFormData, mode: 'no-cors' }));
+
             } else if (formMode === 'check-out') {
+                const checkOutFormData = new FormData();
                 const now = new Date();
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const day = String(now.getDate()).padStart(2, '0');
                 const year = String(now.getFullYear()).slice(-2);
                 const systemDate = `${month}.${day}.${year}`;
-                
-                formData.append('entry.1845522591', attendantName);
-                formData.append('entry.1266499904', carTag);
-                formData.append('entry.1075321922', systemDate);
-                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
+                checkOutFormData.append('entry.1845522591', attendantName);
+                checkOutFormData.append('entry.1266499904', carTagInput.value.trim());
+                checkOutFormData.append('entry.1075321922', systemDate);
+                const checkOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
+                submissions.push(fetch(checkOutUrl, { method: 'POST', body: checkOutFormData, mode: 'no-cors' }));
 
             } else if (formMode === 'in-out') {
+                const inOutFormData = new FormData();
                 const status = document.querySelector('input[name="inOutStatus"]:checked').value;
-                
-                formData.append('entry.1604519976', attendantName);
-                formData.append('entry.1341342126', carTag);
-                formData.append('entry.1317651225', status);
-                formResponseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
+                inOutFormData.append('entry.1604519976', attendantName);
+                inOutFormData.append('entry.1341342126', carTagInput.value.trim());
+                inOutFormData.append('entry.1317651225', status);
+                const inOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
+                submissions.push(fetch(inOutUrl, { method: 'POST', body: inOutFormData, mode: 'no-cors' }));
             }
             
             try {
-                if (formError) throw new Error(formError);
-
-                await fetch(formResponseUrl, { method: 'POST', body: formData, mode: 'no-cors' });
+                await Promise.all(submissions);
                 
                 showMessage(successMessage);
                 valetForm.reset();
                 loadAttendantName();
-                document.getElementById('carTag').focus();
+                carTagInput.focus();
 
             } catch (error) {
                 console.error('Form submission error:', error);
