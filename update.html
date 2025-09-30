@@ -90,18 +90,18 @@
                 
                 <div id="checkInFields" class="space-y-4">
                     <div>
-                        <button type="button" id="scanCodeButton" class="w-full flex items-center justify-center py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h2Z M18 6h2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2Z M12 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2Z M12 18v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2Z M6 12h12"/></svg>
-                            <span id="scanButtonText">Scan Code</span>
-                        </button>
-                    </div>
-                    <div>
                         <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
                         <input type="text" id="guestName" name="guestName" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
                     <div>
                         <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
                         <input type="text" id="roomNumber" name="roomNumber" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    </div>
+                    <div>
+                        <button type="button" id="scanCodeButton" class="w-full flex items-center justify-center py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h2Z M18 6h2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2Z M12 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2Z M12 18v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2Z M6 12h12"/></svg>
+                            <span id="scanButtonText">Scan Code</span>
+                        </button>
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -569,8 +569,10 @@
                     if (tags.length === 0) {
                         const yesterday = new Date();
                         yesterday.setDate(yesterday.getDate() - 1);
-                        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                        const formattedDate = yesterday.toLocaleDateString('en-US', options);
+                        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+                        const day = String(yesterday.getDate()).padStart(2, '0');
+                        const year = String(yesterday.getFullYear()).slice(-2);
+                        const formattedDate = `${month}/${day}/${year}`;
                         redTagList.innerHTML = `<li class="text-gray-400 text-center">Looks like everyone was charged for the last date (${formattedDate})</li>`;
                     } else {
                         tags.forEach(tag => {
