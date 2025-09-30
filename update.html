@@ -90,9 +90,9 @@
                 
                 <div id="checkInFields" class="space-y-4">
                     <div>
-                        <button type="button" id="scanVinButton" class="w-full flex items-center justify-center py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
+                        <button type="button" id="scanCodeButton" class="w-full flex items-center justify-center py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h2Z M18 6h2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2Z M12 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2Z M12 18v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2Z M6 12h12"/></svg>
-                            <span id="scanButtonText">Scan VIN</span>
+                            <span id="scanButtonText">Scan Code</span>
                         </button>
                     </div>
                     <div>
@@ -179,10 +179,10 @@
         </div>
     </div>
 
-    <!-- VIN Scanner Modal -->
+    <!-- Scanner Modal -->
     <div id="scannerModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center z-50 transition-opacity duration-300 opacity-0">
         <div class="bg-gray-800 rounded-lg shadow-2xl p-4 w-full max-w-md m-4">
-            <h2 class="text-white text-lg text-center mb-4">Point Camera at VIN Barcode</h2>
+            <h2 class="text-white text-lg text-center mb-4">Point Camera at Barcode/QR Code</h2>
             <div id="scanner-container">
                 <div id="barcode-scanner"></div>
             </div>
@@ -223,8 +223,8 @@
         const redTagView = document.getElementById('redTagView');
         const redTagList = document.getElementById('redTagList');
 
-        // --- VIN Scanner Elements ---
-        const scanVinButton = document.getElementById('scanVinButton');
+        // --- Scanner Elements ---
+        const scanCodeButton = document.getElementById('scanCodeButton');
         const scanButtonText = document.getElementById('scanButtonText');
         const scannerModal = document.getElementById('scannerModal');
         const cancelScanButton = document.getElementById('cancelScanButton');
@@ -475,7 +475,7 @@
             }
         });
         
-        // --- VIN SCANNER LOGIC ---
+        // --- Scanner Logic ---
 
         function showScanner() {
             scannerModal.classList.remove('hidden');
@@ -498,21 +498,27 @@
         }
 
         function onScanSuccess(decodedText, decodedResult) {
-            // Only act on the first scan result
             if (html5QrCode.isScanning) {
                 hideScanner();
-                decodeVin(decodedText);
+                
+                let vin = decodedText;
+                // Check if the scanned text is a comma-separated string from a QR code
+                if (decodedText.includes(',')) {
+                    // Grab the first part, which is the VIN
+                    vin = decodedText.split(',')[0].trim();
+                }
+                
+                decodeVin(vin);
             }
         }
 
         function onScanError(errorMessage) {
-            // handle on error condition, usually via console.log()
-            // console.warn(`Code scan error = ${errorMessage}`);
+            // This function is required but we don't need to do anything with the errors.
         }
 
         async function decodeVin(vin) {
             scanButtonText.textContent = 'Decoding...';
-            scanVinButton.disabled = true;
+            scanCodeButton.disabled = true;
             try {
                 const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
                 if (!response.ok) {
@@ -529,21 +535,21 @@
                     document.getElementById('carMake').value = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
                     document.getElementById('carModel').value = model.charAt(0).toUpperCase() + model.slice(1).toLowerCase();
                 } else {
-                    alert('Could not decode VIN. Please enter details manually.');
+                    alert('Could not decode VIN from the scanned code. Please enter details manually.');
                 }
             } catch (error) {
                 console.error('VIN decoding failed:', error);
                 alert('Failed to decode VIN. Please check your connection and try again.');
             } finally {
-                scanButtonText.textContent = 'Scan VIN';
-                scanVinButton.disabled = false;
+                scanButtonText.textContent = 'Scan Code';
+                scanCodeButton.disabled = false;
             }
         }
         
-        scanVinButton.addEventListener('click', showScanner);
+        scanCodeButton.addEventListener('click', showScanner);
         cancelScanButton.addEventListener('click', hideScanner);
 
-        // --- END VIN SCANNER LOGIC ---
+        // --- END Scanner Logic ---
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- Red Tag System Logic ---
