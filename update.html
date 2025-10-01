@@ -243,15 +243,19 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
+        // --- Global Config ---
+        let formConfig = null;
+        let auth = null;
+        let redTaggedCars = new Set();
+        let formMode = 'check-in';
+        let currentConfirmAction = null;
+
         // --- DOM Elements ---
         const loginContainer = document.getElementById('login-container');
         const appContainer = document.getElementById('app-container');
         const loginForm = document.getElementById('loginForm');
         const loginError = document.getElementById('loginError');
         const signOutButton = document.getElementById('signOutButton');
-        
-        let redTaggedCars = new Set();
-
         const valetForm = document.getElementById('valetForm');
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
@@ -259,33 +263,43 @@
         const attendantNameInput = document.getElementById('attendantName');
         const carTagInput = document.getElementById('carTag');
         const submitButton = valetForm.querySelector('button[type="submit"]');
-
         const clearButton = document.getElementById('clearButton');
         const confirmationModal = document.getElementById('confirmationModal');
         const confirmationMessage = document.getElementById('confirmationMessage');
         const confirmButton = document.getElementById('confirmButton');
         const cancelButton = document.getElementById('cancelButton');
-        
         const checkInTab = document.getElementById('checkInTab');
         const checkOutTab = document.getElementById('checkOutTab');
         const inOutTab = document.getElementById('inOutTab');
         const redTagAlertButton = document.getElementById('redTagAlertButton');
-
         const checkInFields = document.getElementById('checkInFields');
         const checkOutFields = document.getElementById('checkOutFields');
         const inOutFields = document.getElementById('inOutFields');
         const redTagView = document.getElementById('redTagView');
         const redTagList = document.getElementById('redTagList');
-
         const scanVinButton = document.getElementById('scanVinButton');
         const scanButtonText = document.getElementById('scanButtonText');
         const scannerModal = document.getElementById('scannerModal');
         const cancelScanButton = document.getElementById('cancelScanButton');
         let html5QrCode = null;
-        
-        let formMode = 'check-in';
-        let currentConfirmAction = null;
-        let auth = null;
+
+        // --- Core Initializer ---
+        async function initializeApp() {
+            // Determine property code from URL (e.g., 'mcipr' from 'mcipr.yourdomain.com')
+            const propertyCode = window.location.hostname.split('.')[0] || 'mcipr'; // Default for local testing
+            
+            try {
+                const response = await fetch(`/assets/hotels/${propertyCode}.txt`);
+                if (!response.ok) throw new Error('Property config not found.');
+                formConfig = await response.json();
+            } catch (error) {
+                console.error('Failed to load property config:', error);
+                alert('Error: Could not load property configuration. App cannot start.');
+                return;
+            }
+
+            setupAuthentication();
+        }
 
         // --- Authentication Setup ---
         async function setupAuthentication() {
@@ -349,7 +363,7 @@
             }
         }
 
-        // --- Main App Logic (runs after successful login or if login is disabled) ---
+        // --- Main App Logic ---
         function initializeAppLogic() {
             function showConfirmation(message, callback) {
                 confirmationMessage.textContent = message;
@@ -505,6 +519,10 @@
 
             valetForm.addEventListener('submit', async function(event) {
                 event.preventDefault();
+                if (!formConfig) {
+                    alert('Configuration not loaded. Cannot submit form.');
+                    return;
+                }
                 
                 if (formMode === 'check-in') {
                     const roomNumberValue = document.getElementById('roomNumber').value.trim();
@@ -525,7 +543,6 @@
                 submitButton.textContent = 'Submitting...';
 
                 let submissions = [];
-
                 let attendantName = attendantNameInput.value.trim();
                 if (auth && auth.currentUser) {
                     attendantName = `${attendantName} - ${auth.currentUser.email}`;
@@ -539,18 +556,18 @@
                     const systemDate = `${month}.${day}.${year}`;
 
                     const checkInFormData = new FormData();
-                    checkInFormData.append('entry.829031142', attendantName);
-                    checkInFormData.append('entry.397217549', carTagInput.value.trim());
-                    checkInFormData.append('entry.712526638', document.getElementById('guestName').value.trim());
-                    checkInFormData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
-                    checkInFormData.append('entry.649767439', document.getElementById('carMake').value.trim());
-                    checkInFormData.append('entry.1972256179', document.getElementById('carModel').value.trim());
-                    checkInFormData.append('entry.1974586787', document.getElementById('carColor').value.trim());
-                    checkInFormData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
-                    checkInFormData.append('entry.1721956859', systemDate);
-                    checkInFormData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
-                    const checkInUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
-                    submissions.push(fetch(checkInUrl, { method: 'POST', body: checkInFormData, mode: 'no-cors' }));
+                    const cfg = formConfig.checkIn.entries;
+                    checkInFormData.append(cfg.attendantName, attendantName);
+                    checkInFormData.append(cfg.carTag, carTagInput.value.trim());
+                    checkInFormData.append(cfg.guestName, document.getElementById('guestName').value.trim());
+                    checkInFormData.append(cfg.roomNumber, document.getElementById('roomNumber').value.trim());
+                    checkInFormData.append(cfg.carMake, document.getElementById('carMake').value.trim());
+                    checkInFormData.append(cfg.carModel, document.getElementById('carModel').value.trim());
+                    checkInFormData.append(cfg.carColor, document.getElementById('carColor').value.trim());
+                    checkInFormData.append(cfg.licensePlate, document.getElementById('licensePlate').value.trim());
+                    checkInFormData.append(cfg.arrivalDate, systemDate);
+                    checkInFormData.append(cfg.departureDate, formatDateForForm(document.getElementById('departureDate').value));
+                    submissions.push(fetch(formConfig.checkIn.url, { method: 'POST', body: checkInFormData, mode: 'no-cors' }));
 
                     const counterFormData = new FormData();
                     const timestampNow = new Date();
@@ -562,31 +579,30 @@
                     const tsDay = pad(timestampNow.getDate());
                     const tsYear = String(timestampNow.getFullYear()).slice(-2);
                     const timestamp = `${hours}:${minutes}:${seconds} ${tsMonth}.${tsDay}.${tsYear}`;
-                    counterFormData.append('entry.16130364', timestamp);
-                    const counterUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse';
-                    submissions.push(fetch(counterUrl, { method: 'POST', body: counterFormData, mode: 'no-cors' }));
+                    counterFormData.append(formConfig.counter.entries.timestamp, timestamp);
+                    submissions.push(fetch(formConfig.counter.url, { method: 'POST', body: counterFormData, mode: 'no-cors' }));
 
                 } else if (formMode === 'check-out') {
                     const checkOutFormData = new FormData();
+                    const cfg = formConfig.checkOut.entries;
                     const now = new Date();
                     const month = String(now.getMonth() + 1).padStart(2, '0');
                     const day = String(now.getDate()).padStart(2, '0');
                     const year = String(now.getFullYear()).slice(-2);
                     const systemDate = `${month}.${day}.${year}`;
-                    checkOutFormData.append('entry.1845522591', attendantName);
-                    checkOutFormData.append('entry.1266499904', carTagInput.value.trim());
-                    checkOutFormData.append('entry.1075321922', systemDate);
-                    const checkOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
-                    submissions.push(fetch(checkOutUrl, { method: 'POST', body: checkOutFormData, mode: 'no-cors' }));
+                    checkOutFormData.append(cfg.attendantName, attendantName);
+                    checkOutFormData.append(cfg.carTag, carTagInput.value.trim());
+                    checkOutFormData.append(cfg.systemDate, systemDate);
+                    submissions.push(fetch(formConfig.checkOut.url, { method: 'POST', body: checkOutFormData, mode: 'no-cors' }));
 
                 } else if (formMode === 'in-out') {
                     const inOutFormData = new FormData();
+                    const cfg = formConfig.inOut.entries;
                     const status = document.querySelector('input[name="inOutStatus"]:checked').value;
-                    inOutFormData.append('entry.1604519976', attendantName);
-                    inOutFormData.append('entry.1341342126', carTagInput.value.trim());
-                    inOutFormData.append('entry.1317651225', status);
-                    const inOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
-                    submissions.push(fetch(inOutUrl, { method: 'POST', body: inOutFormData, mode: 'no-cors' }));
+                    inOutFormData.append(cfg.attendantName, attendantName);
+                    inOutFormData.append(cfg.carTag, carTagInput.value.trim());
+                    inOutFormData.append(cfg.status, status);
+                    submissions.push(fetch(formConfig.inOut.url, { method: 'POST', body: inOutFormData, mode: 'no-cors' }));
                 }
                 
                 try {
@@ -688,15 +704,14 @@
                 const clearFormData = new FormData();
                 const now = new Date();
                 const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-
-                clearFormData.append('entry.55118666', attendantName);
-                clearFormData.append('entry.1034300842', tag);
-                clearFormData.append('entry.1633986932', timestamp);
-
-                const clearUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeMbbee1XsdRlCZoD6jkkF6_xByjxkhiFPUwThCGUi9gtuD-g/formResponse';
+                
+                const cfg = formConfig.clearRedTag.entries;
+                clearFormData.append(cfg.attendantInfo, attendantName);
+                clearFormData.append(cfg.clearedTag, tag);
+                clearFormData.append(cfg.timestamp, timestamp);
 
                 try {
-                    await fetch(clearUrl, { method: 'POST', body: clearFormData, mode: 'no-cors' });
+                    await fetch(formConfig.clearRedTag.url, { method: 'POST', body: clearFormData, mode: 'no-cors' });
                     element.remove();
                     
                     if (redTagList.children.length === 0) {
@@ -768,7 +783,7 @@
             loadFormState();
         } 
         
-        document.addEventListener('DOMContentLoaded', setupAuthentication);
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
     </script>
 
