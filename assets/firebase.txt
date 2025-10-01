@@ -1,0 +1,9 @@
+{
+"apiKey": "AIzaSyCZOElEjgaAxXFn1tQrtx5PAMTW4PPv20g",
+"authDomain": "valetparking-mcipr.firebaseapp.com",
+"projectId": "valetparking-mcipr",
+"storageBucket": "https://www.google.com/search?q=valetparking-mcipr.appspot.com",
+"messagingSenderId": "813115061999",
+"appId": "1:813115061999:web:14f9471d780cfabf180d1a",
+"measurementId": "G-KPEWMSWV2M"
+}
