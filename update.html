@@ -274,6 +274,7 @@
         
         let formMode = 'check-in';
         let currentConfirmAction = null;
+        let auth = null;
 
         // --- Authentication Setup ---
         async function setupAuthentication() {
@@ -287,13 +288,12 @@
 
                 // --- LOGIN ENABLED ---
                 const app = firebase.initializeApp(firebaseConfig);
-                const auth = firebase.auth();
+                auth = firebase.auth();
 
                 auth.onAuthStateChanged(user => {
                     if (user) {
                         loginContainer.classList.add('hidden');
                         appContainer.style.display = 'flex';
-                        attendantNameInput.value = user.displayName || user.email;
                         initializeAppLogic();
                     } else {
                         appContainer.style.display = 'none';
@@ -382,9 +382,7 @@
                 const savedState = localStorage.getItem('valetFormState');
                 if (savedState) {
                     const state = JSON.parse(savedState);
-                    if (!auth.currentUser) { // Only load attendant name if not logged in
-                         attendantNameInput.value = state.attendantName || '';
-                    }
+                    attendantNameInput.value = state.attendantName || '';
                     carTagInput.value = state.carTag || '';
                     document.getElementById('guestName').value = state.guestName || '';
                     document.getElementById('roomNumber').value = state.roomNumber || '';
@@ -403,9 +401,7 @@
             function clearFormAndPreserveAttendant() {
                 const currentAttendantName = attendantNameInput.value;
                 valetForm.reset(); 
-                if (auth.currentUser) {
-                    attendantNameInput.value = currentAttendantName;
-                }
+                attendantNameInput.value = currentAttendantName;
                 carTagInput.focus();
                 saveFormState(); 
             }
@@ -499,7 +495,10 @@
 
                 let submissions = [];
 
-                const attendantName = attendantNameInput.value.trim();
+                let attendantName = attendantNameInput.value.trim();
+                if (auth && auth.currentUser) {
+                    attendantName = `${attendantName} - ${auth.currentUser.email}`;
+                }
 
                 if (formMode === 'check-in') {
                     const now = new Date();
