@@ -68,7 +68,7 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
 
-    <!-- Login Container (hidden by default unless login.txt exists) -->
+    <!-- Login Container (hidden by default unless firebase.txt exists) -->
     <div id="login-container" class="w-full max-w-sm hidden">
         <div class="bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8">
             <div class="text-center mb-6">
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <!-- Main App Container (shown by default unless login.txt exists) -->
+    <!-- Main App Container (shown by default unless firebase.txt exists) -->
     <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
         <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
             <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
@@ -115,7 +115,7 @@
             </button>
     
             <button id="clearButton" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -338,7 +338,7 @@
         // --- Authentication Setup ---
         async function setupAuthentication() {
             try {
-                const response = await fetch('assets/login.txt');
+                const response = await fetch('assets/firebase.txt');
                 if (!response.ok) {
                     throw new Error('Login file not found, disabling authentication.');
                 }
