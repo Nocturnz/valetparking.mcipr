@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCIPR Valet Parking</title>
+    <title>Valet Parking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -360,18 +360,7 @@
 
                     try {
                         await auth.signInWithEmailAndPassword(email, password);
-                        // onAuthStateChanged will handle the next step
-                    } catch (error) {
-                        console.error("Login failed:", error);
-                        loginError.textContent = 'Invalid credentials.';
-                        loginError.classList.remove('hidden');
-                        signInButton.disabled = false;
-                        signInButton.textContent = 'Sign In';
-                        return; // Stop execution if firebase login fails
-                    }
-                    
-                    // This part now runs only after a successful Firebase login
-                    try {
+                        
                         const configResponse = await fetch(`/assets/hotels/${propertyCode}.txt`);
                         if (!configResponse.ok) {
                             throw new Error('Invalid Property Code');
@@ -380,13 +369,13 @@
                         const today = new Date().toISOString().split('T')[0];
                         localStorage.setItem('loginDate', today);
                         localStorage.setItem('propertyCode', propertyCode);
-                        // Let onAuthStateChanged reload the app UI.
                         
                     } catch (error) {
-                        console.error("Property code validation failed:", error);
-                        loginError.textContent = 'Invalid Property Code.';
+                        console.error("Login process failed:", error);
+                        loginError.textContent = 'Invalid credentials or property code.';
                         loginError.classList.remove('hidden');
-                        if (auth.currentUser) auth.signOut(); // Sign out if property code is bad
+                        if (auth.currentUser) auth.signOut();
+                    } finally {
                         signInButton.disabled = false;
                         signInButton.textContent = 'Sign In';
                     }
@@ -400,7 +389,7 @@
             } catch (error) {
                 console.log(error.message);
                 // --- LOGIN DISABLED ---
-                const propertyCode = 'mcipr';
+                const propertyCode = window.location.hostname.split('.')[0].toLowerCase() || 'mcipr';
                 signOutButton.classList.add('hidden');
                 loadConfigAndStart(propertyCode);
             }
