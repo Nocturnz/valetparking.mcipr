@@ -14,12 +14,6 @@
 "departureDate": "entry.1517497640"
 }
 },
-"counter": {
-"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse",
-"entries": {
-"timestamp": "entry.16130364"
-}
-},
 "checkOut": {
 "url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse",
 "entries": {
