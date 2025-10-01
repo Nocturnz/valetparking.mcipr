@@ -98,7 +98,7 @@
     <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
         <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
             <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
     
             <button id="clearButton" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10">
@@ -357,26 +357,38 @@
                     signInButton.textContent = 'Signing In...';
 
                     try {
-                        // First, check if property config exists
-                        const configResponse = await fetch(`/assets/hotels/${propertyCode}.txt`);
-                        if (!configResponse.ok) throw new Error('Invalid Property Code');
-
-                        // If config exists, proceed with login
+                        // Step 1: Attempt to sign in with Firebase first.
                         await auth.signInWithEmailAndPassword(email, password);
                         
-                        // On successful login, store date and property code
+                        // Step 2: If login is successful, THEN check for the property config file.
+                        const configResponse = await fetch(`/assets/hotels/${propertyCode}.txt`);
+                        if (!configResponse.ok) {
+                            throw new Error('Invalid Property Code');
+                        }
+
+                        // Step 3: If both are successful, store the session info.
                         const today = new Date().toISOString().split('T')[0];
                         localStorage.setItem('loginDate', today);
                         localStorage.setItem('propertyCode', propertyCode);
-                        // The onAuthStateChanged observer will handle the rest
+                        // The onAuthStateChanged observer will then pick up the logged-in state and load the app.
+                        
                     } catch (error) {
                         console.error("Login process failed:", error);
+
+                        // If the error is an invalid property code, we must sign the user out.
+                        if (error.message === 'Invalid Property Code') {
+                            if (auth && auth.currentUser) {
+                                auth.signOut();
+                            }
+                        }
+                        
                         loginError.textContent = 'Invalid credentials or property code.';
                         loginError.classList.remove('hidden');
                         signInButton.disabled = false;
                         signInButton.textContent = 'Sign In';
                     }
                 });
+
 
                 signOutButton.addEventListener('click', () => {
                     auth.signOut();
@@ -385,7 +397,7 @@
             } catch (error) {
                 console.log(error.message);
                 // --- LOGIN DISABLED ---
-                const propertyCode = window.location.hostname.split('.')[0] || 'mcipr'; 
+                const propertyCode = 'mcipr'; // Default property code when login is disabled
                 signOutButton.classList.add('hidden');
                 loadConfigAndStart(propertyCode);
             }
@@ -811,7 +823,7 @@
             loadFormState();
         } 
         
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        document.addEventListener('DOMContentLoaded', setupAuthentication);
 
     </script>
 
