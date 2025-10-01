@@ -68,7 +68,6 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
 
-    <!-- Login Container -->
     <div id="login-container" class="w-full max-w-sm hidden">
         <div class="bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8">
             <div class="text-center mb-6">
@@ -107,7 +106,6 @@
         </div>
     </div>
 
-    <!-- Main App Container -->
     <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
         <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
             <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
@@ -248,7 +246,6 @@
         </div>
     </div>
 
-    <!-- Scanner Modal -->
     <div id="scannerModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center z-50 transition-opacity duration-300 opacity-0">
         <div class="bg-gray-800 rounded-lg shadow-2xl p-4 w-full max-w-md m-4">
             <h2 class="text-white text-lg text-center mb-4">Point Camera at Barcode/QR Code</h2>
@@ -259,11 +256,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     
-    <!-- Free & Open Source Barcode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
@@ -317,21 +312,32 @@
 
         // --- Core Initializer ---
         async function loadConfigAndStart(propertyCode) {
-             try {
+            try {
                 document.querySelector('#app-container .property-logo').src = `assets/logos/${propertyCode}.png`;
                 const response = await fetch(`assets/hotels/${propertyCode}.txt`);
-                if (!response.ok) throw new Error('Property config not found.');
-                formConfig = await response.json();
+                if (!response.ok) throw new Error(`Property config file not found for code: ${propertyCode}`);
+                
+                // *** MODIFICATION START ***
+                // Added more detailed error checking for JSON parsing
+                const configText = await response.text();
+                try {
+                    formConfig = JSON.parse(configText);
+                } catch (jsonError) {
+                    console.error('JSON Parsing Error:', jsonError);
+                    throw new Error(`The config file '${propertyCode}.txt' is not valid JSON. Please check its content.`);
+                }
+                // *** MODIFICATION END ***
+
                 initializeAppLogic();
                 appContainer.style.display = 'flex';
                 loginContainer.classList.add('hidden');
             } catch (error) {
-                console.error('Failed to load property config:', error);
+                console.error('Failed to load or parse property config:', error);
+                // Give a user-friendly alert instead of just signing out
+                alert(`CRITICAL ERROR: ${error.message}`); 
                 if (auth && auth.currentUser) { 
                     auth.signOut();
                 }
-                loginError.textContent = 'Invalid Property Code.';
-                loginError.classList.remove('hidden');
             }
         }
 
@@ -356,7 +362,9 @@
             }
 
             // --- LOGIN IS NOW MANDATORY ---
-            const app = firebase.initializeApp(firebaseConfig);
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
             auth = firebase.auth();
 
             auth.onAuthStateChanged(user => {
@@ -375,6 +383,12 @@
                 } else {
                     appContainer.style.display = 'none';
                     loginContainer.classList.remove('hidden');
+                    credentialsSection.classList.add('hidden');
+                    propertyCodeInput.disabled = false;
+                    propertyCodeInput.value = '';
+                    propertyCodeInput.classList.remove('border-red-500', 'border-green-500');
+                    validateButton.disabled = false;
+                    validateButton.textContent = 'Validate';
                     localStorage.removeItem('loginDate');
                     localStorage.removeItem('propertyCode');
                 }
@@ -416,7 +430,10 @@
 
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (!validatedPropertyCode) return;
+                if (!validatedPropertyCode) {
+                    alert('Please validate the Property Code before signing in.');
+                    return;
+                }
 
                 const email = loginForm.email.value;
                 const password = loginForm.password.value;
@@ -432,6 +449,7 @@
                     const today = new Date().toISOString().split('T')[0];
                     localStorage.setItem('loginDate', today);
                     localStorage.setItem('propertyCode', validatedPropertyCode);
+                    // onAuthStateChanged will handle the rest
                     
                 } catch (error) {
                     console.error("Login failed:", error);
@@ -445,7 +463,9 @@
 
 
             signOutButton.addEventListener('click', () => {
-                auth.signOut();
+                showConfirmation("Are you sure you want to sign out?", () => {
+                   auth.signOut();
+                });
             });
         }
 
@@ -815,8 +835,9 @@
                     await fetch(formConfig.clearRedTag.url, { method: 'POST', body: clearFormData, mode: 'no-cors' });
                     element.remove();
                     
-                    if (redTagList.children.length === 0) {
+                    if (redTagList.children.length === 0 || (redTagList.children.length === 1 && redTagList.children[0].tagName !== 'LI')) {
                         redTagAlertButton.classList.add('hidden');
+                        redTagAlertButton.classList.remove('glowing-red');
                         showMainForm();
                         switchTab('check-in');
                     }
@@ -860,6 +881,13 @@
                         });
                     } else {
                          redTagAlertButton.classList.add('hidden');
+                         const p = document.createElement('p');
+                         const yesterday = new Date();
+                         yesterday.setDate(yesterday.getDate() - 1);
+                         const formattedDate = `${String(yesterday.getMonth() + 1).padStart(2, '0')}/${String(yesterday.getDate()).padStart(2, '0')}/${String(yesterday.getFullYear()).slice(-2)}`;
+                         p.textContent = `Looks like everyone was charged for ${formattedDate}`;
+                         p.className = 'text-gray-400 text-center';
+                         redTagList.appendChild(p);
                     }
                 })
                 .catch(error => {
@@ -887,7 +915,5 @@
         document.addEventListener('DOMContentLoaded', setupAuthentication);
 
     </script>
-
 </body>
 </html>
-
