@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,12 +18,6 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
             border-color: #3B82F6;
         }
-        .border-red-500 {
-             border-color: #EF4444;
-        }
-        .form-input.border-red-500:focus {
-             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5);
-        }
         button:disabled {
             cursor: not-allowed;
             opacity: 0.7;
@@ -41,166 +36,109 @@
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(0.8);
         }
-        #scanner-container {
-            width: 100%;
-            overflow: hidden;
-            border-radius: 0.5rem;
-        }
-        #barcode-scanner {
-            width: 100%;
-            border: 1px solid #4B5563;
-        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-start min-h-screen pt-6 sm:pt-10 px-4">
 
-    <!-- Login Container (hidden by default unless login.txt exists) -->
-    <div id="login-container" class="w-full max-w-sm hidden">
-        <div class="bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8">
-            <div class="text-center mb-6">
-                <img src="assets/logo.png" alt="Logo" class="mx-auto h-12 w-auto">
-                <h2 class="mt-4 text-2xl font-bold text-white">Valet Attendant Login</h2>
-            </div>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
-                    <input type="email" id="email" name="email" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                    <input type="password" id="password" name="password" required class="form-input w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                </div>
-                <div id="loginError" class="hidden text-red-400 text-sm text-center">
-                    Invalid email or password.
-                </div>
-                <div>
-                    <button type="submit" class="w-full mt-4 py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">
-                        Sign In
-                    </button>
-                </div>
-            </form>
+    <button id="clearButton" class="fixed top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+    </button>
+
+    <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 mb-8">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white">The Hilton President</h1>
+            <p class="text-gray-400 mt-2">Valet Parking</p>
         </div>
-    </div>
+        
+        <div class="flex border border-gray-600 rounded-lg mb-6">
+            <button id="checkInTab" class="tab-button active w-1/3 p-3 rounded-l-lg font-semibold text-sm sm:text-base">Check-In</button>
+            <button id="checkOutTab" class="tab-button w-1/3 p-3 font-semibold text-sm sm:text-base">Check-Out</button>
+            <button id="inOutTab" class="tab-button w-1/3 p-3 rounded-r-lg font-semibold text-sm sm:text-base">In/Out</button>
+        </div>
 
-    <!-- Main App Container (shown by default unless login.txt exists) -->
-    <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
-        <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
-            <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-    
-            <button id="clearButton" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-            </button>
+        <form id="valetForm">
+            <div class="space-y-4">
+                <div>
+                    <label for="attendantName" class="block text-sm font-medium text-gray-400 mb-2">Attendant Name</label>
+                    <input type="text" id="attendantName" name="attendantName" required class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
 
-            <div class="text-center mb-8 pt-10">
-                <img src="assets/logo.png" alt="The Hilton President Logo" class="mx-auto h-16 w-auto">
-                <p class="text-gray-400 mt-2">Valet Parking</p>
-            </div>
-            
-            <div class="flex border border-gray-600 rounded-lg mb-6">
-                <button id="checkInTab" class="tab-button active w-1/4 p-3 rounded-l-lg font-semibold text-sm sm:text-base">Check-In</button>
-                <button id="checkOutTab" class="tab-button w-1/4 p-3 font-semibold text-sm sm:text-base">Check-Out</button>
-                <button id="inOutTab" class="tab-button w-1/4 p-3 font-semibold text-sm sm:text-base">In/Out</button>
-                <button id="redTagTab" class="tab-button w-1/4 p-3 rounded-r-lg font-semibold text-sm sm:text-base">Red Tags</button>
-            </div>
-
-            <form id="valetForm">
-                <div class="space-y-4">
+                <div id="carTagDiv">
+                    <label for="carTag" class="block text-sm font-medium text-gray-400 mb-2">Car Tag #</label>
+                    <input type="text" id="carTag" name="carTag" required class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                </div>
+                
+                <div id="checkInFields" class="space-y-4">
                     <div>
-                        <label for="attendantName" class="block text-sm font-medium text-gray-400 mb-2">Attendant Name</label>
-                        <input type="text" id="attendantName" name="attendantName" required class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                        <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
+                        <input type="text" id="guestName" name="guestName" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
-
-                    <div id="carTagDiv">
-                        <label for="carTag" class="block text-sm font-medium text-gray-400 mb-2">Car Tag #</label>
-                        <input type="text" id="carTag" name="carTag" required class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                    <div>
+                        <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
+                        <input type="text" id="roomNumber" name="roomNumber" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                     </div>
                     
-                    <div id="checkInFields" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="guestName" class="block text-sm font-medium text-gray-400 mb-2">Guest Name</label>
-                            <input type="text" id="guestName" name="guestName" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                            <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
+                            <input type="text" id="carMake" name="carMake" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                         </div>
                         <div>
-                            <label for="roomNumber" class="block text-sm font-medium text-gray-400 mb-2">Room Number</label>
-                            <input type="text" id="roomNumber" name="roomNumber" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                            <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
+                            <input type="text" id="carModel" name="carModel" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                         </div>
                         <div>
-                            <button type="button" id="scanVinButton" class="w-full flex items-center justify-center py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
-                                <span id="scanButtonText">Scan VIN</span>
-                            </button>
+                            <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
+                            <input type="text" id="carColor" name="carColor" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
                         </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="carMake" class="block text-sm font-medium text-gray-400 mb-2">Make</label>
-                                <input type="text" id="carMake" name="carMake" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                            </div>
-                            <div>
-                                <label for="carModel" class="block text-sm font-medium text-gray-400 mb-2">Model</label>
-                                <input type="text" id="carModel" name="carModel" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                            </div>
-                            <div>
-                                <label for="carColor" class="block text-sm font-medium text-gray-400 mb-2">Color</label>
-                                <input type="text" id="carColor" name="carColor" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                            </div>
-                            <div>
-                                <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
-                                <input type="text" id="licensePlate" name="licensePlate" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
-                            </div>
+                        <div>
+                            <label for="licensePlate" class="block text-sm font-medium text-gray-400 mb-2">License Plate</label>
+                            <input type="text" id="licensePlate" name="licensePlate" class="form-input w-full p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200">
+                        </div>
+                        <div>
+                            <label for="arrivalDate" class="block text-sm font-medium text-gray-400 mb-2">Arrival Date</label>
+                            <input type="date" id="arrivalDate" name="arrivalDate" class="form-input w-full min-w-0 py-2 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
                         </div>
                         <div>
                             <label for="departureDate" class="block text-sm font-medium text-gray-400 mb-2">Departure Date</label>
                             <input type="date" id="departureDate" name="departureDate" class="form-input w-full min-w-0 py-2 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white transition duration-200" style="color-scheme: dark;">
                         </div>
                     </div>
+                </div>
 
-                    <div id="checkOutFields" class="hidden space-y-4">
-                    </div>
+                <div id="checkOutFields" class="hidden space-y-4">
+                </div>
 
-                    <div id="inOutFields" class="hidden space-y-4">
-                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Vehicle Status</label>
-                            <div class="flex items-center space-x-4">
-                                <label><input type="radio" name="inOutStatus" value="Out" checked class="mr-2"> Out</label>
-                                <label><input type="radio" name="inOutStatus" value="In" class="mr-2"> In</label>
-                            </div>
+                <div id="inOutFields" class="hidden space-y-4">
+                     <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Vehicle Status</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="inOutStatus" value="Out" checked class="mr-2"> Out</label>
+                            <label><input type="radio" name="inOutStatus" value="In" class="mr-2"> In</label>
                         </div>
                     </div>
                 </div>
-                
-                <div class="mt-8">
-                    <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
-                        Submit Car
-                    </button>
-                </div>
-            </form>
-
-            <div id="redTagView" class="hidden">
-                <h2 class="text-xl font-semibold text-white text-center mb-4">Red Tagged Cars</h2>
-                <ul id="redTagList" class="bg-gray-700 rounded-lg p-4 space-y-2 text-white max-h-96 overflow-y-auto">
-                    <li class="text-gray-400 text-center">Loading...</li>
-                </ul>
             </div>
-        </div>
+            
+            <div class="mt-8">
+                <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105">
+                    Submit Car
+                </button>
+            </div>
+        </form>
     </div>
-        
+    
     <div id="successMessage" class="hidden fixed top-4 left-1/2 -translate-x-1/2 w-auto max-w-xs bg-green-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
         <p>Submitted!</p>
     </div>
 
     <div id="errorMessage" class="hidden fixed top-4 left-1/2 -translate-x-1/2 w-auto max-w-xs bg-red-500 text-white py-2 px-5 rounded-lg shadow-lg text-center transition-opacity duration-300">
         <p>Submission Failed. Please try again.</p>
-    </div>
-    
-    <div id="redTagWarning" class="hidden fixed top-4 left-1/2 -translate-x-1/2 w-auto max-w-sm bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg text-center transition-opacity duration-300">
-        <p><strong>Warning:</strong> This car is on the Red Tag list. Confirm payment method with the guest.</p>
     </div>
 
     <div id="confirmationModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0">
@@ -213,38 +151,11 @@
         </div>
     </div>
 
-    <!-- Scanner Modal -->
-    <div id="scannerModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center z-50 transition-opacity duration-300 opacity-0">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-4 w-full max-w-md m-4">
-            <h2 class="text-white text-lg text-center mb-4">Point Camera at Barcode/QR Code</h2>
-            <div id="scanner-container">
-                <div id="barcode-scanner"></div>
-            </div>
-            <button id="cancelScanButton" class="mt-4 w-full py-2 px-4 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-400 transition duration-200">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    
-    <!-- Free & Open Source Barcode Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
-        // --- DOM Elements ---
-        const loginContainer = document.getElementById('login-container');
-        const appContainer = document.getElementById('app-container');
-        const loginForm = document.getElementById('loginForm');
-        const loginError = document.getElementById('loginError');
-        const signOutButton = document.getElementById('signOutButton');
-        
-        let redTaggedCars = new Set();
-
         const valetForm = document.getElementById('valetForm');
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
-        const redTagWarning = document.getElementById('redTagWarning');
         const attendantNameInput = document.getElementById('attendantName');
         const carTagInput = document.getElementById('carTag');
         const submitButton = valetForm.querySelector('button[type="submit"]');
@@ -258,443 +169,251 @@
         const checkInTab = document.getElementById('checkInTab');
         const checkOutTab = document.getElementById('checkOutTab');
         const inOutTab = document.getElementById('inOutTab');
-        const redTagTab = document.getElementById('redTagTab');
 
         const checkInFields = document.getElementById('checkInFields');
         const checkOutFields = document.getElementById('checkOutFields');
         const inOutFields = document.getElementById('inOutFields');
-        const redTagView = document.getElementById('redTagView');
-        const redTagList = document.getElementById('redTagList');
-
-        const scanVinButton = document.getElementById('scanVinButton');
-        const scanButtonText = document.getElementById('scanButtonText');
-        const scannerModal = document.getElementById('scannerModal');
-        const cancelScanButton = document.getElementById('cancelScanButton');
-        let html5QrCode = null;
         
         let formMode = 'check-in';
         let currentConfirmAction = null;
 
-        // --- Authentication Setup ---
-        async function setupAuthentication() {
-            try {
-                const response = await fetch('/assets/login.txt');
-                if (!response.ok) {
-                    throw new Error('Login file not found, disabling authentication.');
-                }
-                const configText = await response.text();
-                const firebaseConfig = JSON.parse(configText);
+        function showConfirmation(message, callback) {
+            confirmationMessage.textContent = message;
+            currentConfirmAction = callback;
+            
+            confirmationModal.classList.remove('hidden');
+            setTimeout(() => {
+                confirmationModal.classList.remove('opacity-0');
+                const modalContent = confirmationModal.firstElementChild;
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
 
-                // --- LOGIN ENABLED ---
-                const app = firebase.initializeApp(firebaseConfig);
-                const auth = firebase.auth();
+        function hideConfirmation() {
+            const modalContent = confirmationModal.firstElementChild;
+            modalContent.classList.remove('opacity-100', 'scale-100');
+            modalContent.classList.add('opacity-0', 'scale-95');
+            confirmationModal.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                confirmationModal.classList.add('hidden');
+                currentConfirmAction = null;
+            }, 300);
+        }
 
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        loginContainer.classList.add('hidden');
-                        appContainer.style.display = 'flex';
-                        initializeAppLogic();
-                    } else {
-                        appContainer.style.display = 'none';
-                        loginContainer.classList.remove('hidden');
-                    }
-                });
+        confirmButton.addEventListener('click', () => {
+            if (typeof currentConfirmAction === 'function') {
+                currentConfirmAction();
+            }
+            hideConfirmation();
+        });
 
-                loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const email = loginForm.email.value;
-                    const password = loginForm.password.value;
-                    auth.signInWithEmailAndPassword(email, password)
-                        .catch(error => {
-                            console.error("Login failed:", error);
-                            loginError.classList.remove('hidden');
-                        });
-                });
+        cancelButton.addEventListener('click', hideConfirmation);
 
-                signOutButton.addEventListener('click', () => {
-                    auth.signOut();
-                });
+        function saveFormState() {
+            const state = {
+                attendantName: attendantNameInput.value,
+                carTag: carTagInput.value,
+                guestName: document.getElementById('guestName').value,
+                roomNumber: document.getElementById('roomNumber').value,
+                carMake: document.getElementById('carMake').value,
+                carModel: document.getElementById('carModel').value,
+                carColor: document.getElementById('carColor').value,
+                licensePlate: document.getElementById('licensePlate').value,
+                arrivalDate: document.getElementById('arrivalDate').value,
+                departureDate: document.getElementById('departureDate').value,
+                inOutStatus: document.querySelector('input[name="inOutStatus"]:checked')?.value || 'Out'
+            };
+            localStorage.setItem('valetFormState', JSON.stringify(state));
+        }
 
-            } catch (error) {
-                console.log(error.message);
-                // --- LOGIN DISABLED ---
-                loginContainer.classList.add('hidden');
-                appContainer.style.display = 'flex';
-                signOutButton.classList.add('hidden');
-                initializeAppLogic();
+        function loadFormState() {
+            const savedState = localStorage.getItem('valetFormState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                attendantNameInput.value = state.attendantName || '';
+                carTagInput.value = state.carTag || '';
+                document.getElementById('guestName').value = state.guestName || '';
+                document.getElementById('roomNumber').value = state.roomNumber || '';
+                document.getElementById('carMake').value = state.carMake || '';
+                document.getElementById('carModel').value = state.carModel || '';
+                document.getElementById('carColor').value = state.carColor || '';
+                document.getElementById('licensePlate').value = state.licensePlate || '';
+                document.getElementById('arrivalDate').value = state.arrivalDate || '';
+                document.getElementById('departureDate').value = state.departureDate || '';
+                
+                const inOutStatus = state.inOutStatus || 'Out';
+                const radioToSelect = document.querySelector(`input[name="inOutStatus"][value="${inOutStatus}"]`);
+                if(radioToSelect) radioToSelect.checked = true;
             }
         }
 
-        // --- Main App Logic (runs after successful login or if login is disabled) ---
-        function initializeAppLogic() {
-            function showConfirmation(message, callback) {
-                confirmationMessage.textContent = message;
-                currentConfirmAction = callback;
-                
-                confirmationModal.classList.remove('hidden');
-                setTimeout(() => {
-                    confirmationModal.classList.remove('opacity-0');
-                    const modalContent = confirmationModal.firstElementChild;
-                    modalContent.classList.remove('opacity-0', 'scale-95');
-                    modalContent.classList.add('opacity-100', 'scale-100');
-                }, 10);
-            }
+        function clearFormAndPreserveAttendant() {
+            const currentAttendantName = attendantNameInput.value;
+            valetForm.reset(); 
+            attendantNameInput.value = currentAttendantName;
+            carTagInput.focus();
+            saveFormState(); 
+        }
 
-            function hideConfirmation() {
-                const modalContent = confirmationModal.firstElementChild;
-                modalContent.classList.remove('opacity-100', 'scale-100');
-                modalContent.classList.add('opacity-0', 'scale-95');
-                confirmationModal.classList.add('opacity-0');
-                
-                setTimeout(() => {
-                    confirmationModal.classList.add('hidden');
-                    currentConfirmAction = null;
-                }, 300);
-            }
+        clearButton.addEventListener('click', () => {
+            showConfirmation('Are you sure you want to clear the form?', clearFormAndPreserveAttendant);
+        });
 
-            confirmButton.addEventListener('click', () => {
-                if (typeof currentConfirmAction === 'function') {
-                    currentConfirmAction();
-                }
-                hideConfirmation();
-            });
-
-            cancelButton.addEventListener('click', hideConfirmation);
-
-            function saveFormState() {
-                const state = {
-                    attendantName: attendantNameInput.value,
-                    carTag: carTagInput.value,
-                    guestName: document.getElementById('guestName').value,
-                    roomNumber: document.getElementById('roomNumber').value,
-                    carMake: document.getElementById('carMake').value,
-                    carModel: document.getElementById('carModel').value,
-                    carColor: document.getElementById('carColor').value,
-                    licensePlate: document.getElementById('licensePlate').value,
-                    departureDate: document.getElementById('departureDate').value,
-                    inOutStatus: document.querySelector('input[name="inOutStatus"]:checked')?.value || 'Out'
-                };
-                localStorage.setItem('valetFormState', JSON.stringify(state));
-            }
-
-            function loadFormState() {
-                const savedState = localStorage.getItem('valetFormState');
-                if (savedState) {
-                    const state = JSON.parse(savedState);
-                    attendantNameInput.value = state.attendantName || '';
-                    carTagInput.value = state.carTag || '';
-                    document.getElementById('guestName').value = state.guestName || '';
-                    document.getElementById('roomNumber').value = state.roomNumber || '';
-                    document.getElementById('carMake').value = state.carMake || '';
-                    document.getElementById('carModel').value = state.carModel || '';
-                    document.getElementById('carColor').value = state.carColor || '';
-                    document.getElementById('licensePlate').value = state.licensePlate || '';
-                    document.getElementById('departureDate').value = state.departureDate || '';
-                    
-                    const inOutStatus = state.inOutStatus || 'Out';
-                    const radioToSelect = document.querySelector(`input[name="inOutStatus"][value="${inOutStatus}"]`);
-                    if(radioToSelect) radioToSelect.checked = true;
-                }
-            }
-
-            function clearFormAndPreserveAttendant() {
-                const currentAttendantName = attendantNameInput.value;
-                valetForm.reset(); 
-                attendantNameInput.value = currentAttendantName;
-                carTagInput.focus();
-                saveFormState(); 
-            }
-
-            clearButton.addEventListener('click', () => {
-                showConfirmation('Are you sure you want to clear the form?', clearFormAndPreserveAttendant);
-            });
-
-            function setRequiredForCheckin(isRequired) {
-                checkInFields.querySelectorAll('input').forEach(input => {
-                    if (input.id === 'guestName' || input.id === 'roomNumber' || input.id === 'departureDate') {
-                        input.required = false;
-                    } else {
-                        input.required = isRequired;
-                    }
-                });
-            }
-
-            function switchTab(newMode) {
-                formMode = newMode;
-                
-                checkInTab.classList.toggle('active', newMode === 'check-in');
-                checkOutTab.classList.toggle('active', newMode === 'check-out');
-                inOutTab.classList.toggle('active', newMode === 'in-out');
-                redTagTab.classList.toggle('active', newMode === 'red-tag');
-
-                valetForm.classList.toggle('hidden', newMode === 'red-tag');
-                redTagView.classList.toggle('hidden', newMode !== 'red-tag');
-
-                if (newMode !== 'red-tag') {
-                    checkInFields.classList.toggle('hidden', newMode !== 'check-in');
-                    checkOutFields.classList.toggle('hidden', newMode !== 'check-out');
-                    inOutFields.classList.toggle('hidden', newMode !== 'in-out');
-                    
-                    setRequiredForCheckin(newMode === 'check-in');
-
-                    if (newMode === 'check-in') {
-                        submitButton.textContent = 'Submit Car';
-                    } else if (newMode === 'check-out') {
-                        submitButton.textContent = 'Submit Checkout';
-                    } else if (newMode === 'in-out') {
-                        submitButton.textContent = 'Log Status';
-                    }
-                }
-            }
-
-            checkInTab.addEventListener('click', () => switchTab('check-in'));
-            checkOutTab.addEventListener('click', () => switchTab('check-out'));
-            inOutTab.addEventListener('click', () => switchTab('in-out'));
-            redTagTab.addEventListener('click', () => switchTab('red-tag'));
-
-            function showMessage(element, duration = 4000) {
-                element.classList.remove('hidden');
-                element.classList.add('opacity-100');
-                setTimeout(() => {
-                    element.classList.remove('opacity-100');
-                    setTimeout(() => element.classList.add('hidden'), 300);
-                }, duration);
-            }
-
-            function formatDateForForm(dateString) {
-                if (!dateString) return 'N/A';
-                const parts = dateString.split('-');
-                if (parts.length !== 3) return dateString;
-                const [year, month, day] = parts;
-                return `${month}.${day}.${year.slice(-2)}`;
-            }
-            
-            valetForm.addEventListener('input', saveFormState);
-
-            valetForm.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                
-                if (formMode === 'check-in') {
-                    const roomNumberValue = document.getElementById('roomNumber').value.trim();
-                    const guestNameValue = document.getElementById('guestName').value.trim();
-
-                    if (roomNumberValue !== '' && guestNameValue === '') {
-                        const p = errorMessage.querySelector('p');
-                        const originalText = p.textContent;
-                        p.textContent = 'Guest Name is required when Room Number is provided.';
-                        showMessage(errorMessage);
-                        setTimeout(() => { p.textContent = originalText; }, 3000);
-                        return;
-                    }
-                }
-                
-                submitButton.disabled = true;
-                const originalButtonText = submitButton.textContent;
-                submitButton.textContent = 'Submitting...';
-
-                let submissions = [];
-
-                const attendantName = attendantNameInput.value.trim();
-
-                if (formMode === 'check-in') {
-                    const now = new Date();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const day = String(now.getDate()).padStart(2, '0');
-                    const year = String(now.getFullYear()).slice(-2);
-                    const systemDate = `${month}.${day}.${year}`;
-
-                    const checkInFormData = new FormData();
-                    checkInFormData.append('entry.829031142', attendantName);
-                    checkInFormData.append('entry.397217549', carTagInput.value.trim());
-                    checkInFormData.append('entry.712526638', document.getElementById('guestName').value.trim());
-                    checkInFormData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
-                    checkInFormData.append('entry.649767439', document.getElementById('carMake').value.trim());
-                    checkInFormData.append('entry.1972256179', document.getElementById('carModel').value.trim());
-                    checkInFormData.append('entry.1974586787', document.getElementById('carColor').value.trim());
-                    checkInFormData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
-                    checkInFormData.append('entry.1721956859', systemDate);
-                    checkInFormData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
-                    const checkInUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
-                    submissions.push(fetch(checkInUrl, { method: 'POST', body: checkInFormData, mode: 'no-cors' }));
-
-                    const counterFormData = new FormData();
-                    const timestampNow = new Date();
-                    const pad = (num) => String(num).padStart(2, '0');
-                    const hours = pad(timestampNow.getHours());
-                    const minutes = pad(timestampNow.getMinutes());
-                    const seconds = pad(timestampNow.getSeconds());
-                    const tsMonth = pad(timestampNow.getMonth() + 1);
-                    const tsDay = pad(timestampNow.getDate());
-                    const tsYear = String(timestampNow.getFullYear()).slice(-2);
-                    const timestamp = `${hours}:${minutes}:${seconds} ${tsMonth}.${tsDay}.${tsYear}`;
-                    counterFormData.append('entry.16130364', timestamp);
-                    const counterUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse';
-                    submissions.push(fetch(counterUrl, { method: 'POST', body: counterFormData, mode: 'no-cors' }));
-
-                } else if (formMode === 'check-out') {
-                    const checkOutFormData = new FormData();
-                    const now = new Date();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const day = String(now.getDate()).padStart(2, '0');
-                    const year = String(now.getFullYear()).slice(-2);
-                    const systemDate = `${month}.${day}.${year}`;
-                    checkOutFormData.append('entry.1845522591', attendantName);
-                    checkOutFormData.append('entry.1266499904', carTagInput.value.trim());
-                    checkOutFormData.append('entry.1075321922', systemDate);
-                    const checkOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
-                    submissions.push(fetch(checkOutUrl, { method: 'POST', body: checkOutFormData, mode: 'no-cors' }));
-
-                } else if (formMode === 'in-out') {
-                    const inOutFormData = new FormData();
-                    const status = document.querySelector('input[name="inOutStatus"]:checked').value;
-                    inOutFormData.append('entry.1604519976', attendantName);
-                    inOutFormData.append('entry.1341342126', carTagInput.value.trim());
-                    inOutFormData.append('entry.1317651225', status);
-                    const inOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
-                    submissions.push(fetch(inOutUrl, { method: 'POST', body: inOutFormData, mode: 'no-cors' }));
-                }
-                
-                try {
-                    await Promise.all(submissions);
-                    
-                    showMessage(successMessage);
-                    clearFormAndPreserveAttendant();
-
-                } catch (error) {
-                    console.error('Form submission error:', error);
-                    showMessage(errorMessage);
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalButtonText;
-                }
-            });
-            
-            // --- Scanner Logic ---
-
-            function showScanner() {
-                scannerModal.classList.remove('hidden');
-                setTimeout(() => scannerModal.classList.remove('opacity-0'), 10);
-
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("barcode-scanner");
-                }
-
-                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanError);
-            }
-
-            function hideScanner() {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().catch(err => console.error("Failed to stop scanner", err));
-                }
-                scannerModal.classList.add('opacity-0');
-                setTimeout(() => scannerModal.classList.add('hidden'), 300);
-            }
-
-            function onScanSuccess(decodedText, decodedResult) {
-                if (html5QrCode.isScanning) {
-                    hideScanner();
-                    
-                    let vin = decodedText;
-                    if (decodedText.includes(',')) {
-                        vin = decodedText.split(',')[0].trim();
-                    }
-                    
-                    decodeVin(vin);
-                }
-            }
-
-            function onScanError(errorMessage) {
-                // This function is required but we don't need to do anything with the errors.
-            }
-
-            async function decodeVin(vin) {
-                scanButtonText.textContent = 'Decoding...';
-                scanVinButton.disabled = true;
-                try {
-                    const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    const data = await response.json();
-
-                    const results = data.Results;
-                    const make = results.find(item => item.Variable === 'Make')?.Value || '';
-                    const model = results.find(item => item.Variable === 'Model')?.Value || '';
-                    
-                    if (make && model) {
-                        document.getElementById('carMake').value = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
-                        document.getElementById('carModel').value = model.charAt(0).toUpperCase() + model.slice(1).toLowerCase();
-                    } else {
-                        alert('Could not decode VIN from the scanned code. Please enter details manually.');
-                    }
-                } catch (error) {
-                    console.error('VIN decoding failed:', error);
-                    alert('Failed to decode VIN. Please check your connection and try again.');
-                } finally {
-                    scanButtonText.textContent = 'Scan VIN';
-                    scanVinButton.disabled = false;
-                }
-            }
-            
-            scanVinButton.addEventListener('click', showScanner);
-            cancelScanButton.addEventListener('click', hideScanner);
-
-            // --- Red Tag System Logic ---
-            fetch('/assets/redtag.txt')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(text => {
-                    const tags = text.split(/\r?\n/).map(tag => tag.trim().toUpperCase()).filter(tag => tag.length > 0);
-                    redTaggedCars = new Set(tags);
-                    console.log('Red Tag list loaded:', redTaggedCars);
-
-                    redTagList.innerHTML = ''; 
-                    if (tags.length === 0) {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-                        const day = String(yesterday.getDate()).padStart(2, '0');
-                        const year = String(yesterday.getFullYear()).slice(-2);
-                        const formattedDate = `${month}/${day}/${year}`;
-                        redTagList.innerHTML = `<li class="text-gray-400 text-center">Looks like everyone was charged for the last date (${formattedDate})</li>`;
-                    } else {
-                        tags.forEach(tag => {
-                            const li = document.createElement('li');
-                            li.textContent = tag;
-                            li.className = 'p-2 bg-gray-800 rounded';
-                            redTagList.appendChild(li);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to load redtag.txt:', error);
-                    redTagList.innerHTML = '<li class="text-red-400 text-center">Could not load list.</li>';
-                });
-
-            carTagInput.addEventListener('blur', () => {
-                const currentTag = carTagInput.value.trim().toUpperCase();
-                
-                if (currentTag && redTaggedCars.has(currentTag)) {
-                    showMessage(redTagWarning);
-                    carTagInput.classList.add('border-red-500');
+        function setRequiredForCheckin(isRequired) {
+            checkInFields.querySelectorAll('input').forEach(input => {
+                if (input.id === 'guestName' || input.id === 'roomNumber' || input.id === 'arrivalDate' || input.id === 'departureDate') {
+                    input.required = false;
                 } else {
-                    redTagWarning.classList.add('hidden');
-                    carTagInput.classList.remove('border-red-500');
+                    input.required = isRequired;
                 }
             });
+        }
 
-            // Initial setup
+        function switchTab(newMode) {
+            formMode = newMode;
+            
+            checkInTab.classList.toggle('active', newMode === 'check-in');
+            checkOutTab.classList.toggle('active', newMode === 'check-out');
+            inOutTab.classList.toggle('active', newMode === 'in-out');
+
+            checkInFields.classList.toggle('hidden', newMode !== 'check-in');
+            checkOutFields.classList.toggle('hidden', newMode !== 'check-out');
+            inOutFields.classList.toggle('hidden', newMode !== 'in-out');
+            
+            setRequiredForCheckin(newMode === 'check-in');
+
+            if (newMode === 'check-in') {
+                submitButton.textContent = 'Submit Car';
+            } else if (newMode === 'check-out') {
+                submitButton.textContent = 'Submit Checkout';
+            } else if (newMode === 'in-out') {
+                submitButton.textContent = 'Log Status';
+            }
+        }
+
+        checkInTab.addEventListener('click', () => switchTab('check-in'));
+        checkOutTab.addEventListener('click', () => switchTab('check-out'));
+        inOutTab.addEventListener('click', () => switchTab('in-out'));
+
+        function showMessage(element, duration = 3000) {
+            element.classList.remove('hidden');
+            element.classList.add('opacity-100');
+            setTimeout(() => {
+                element.classList.remove('opacity-100');
+                element.classList.add('hidden');
+            }, duration);
+        }
+
+        function formatDateForForm(dateString) {
+            if (!dateString) return 'N/A';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            const [year, month, day] = parts;
+            return `${month}.${day}.${year.slice(-2)}`;
+        }
+        
+        valetForm.addEventListener('input', saveFormState);
+
+        valetForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            if (formMode === 'check-in') {
+                const roomNumberValue = document.getElementById('roomNumber').value.trim();
+                const guestNameValue = document.getElementById('guestName').value.trim();
+
+                if (roomNumberValue !== '' && guestNameValue === '') {
+                    const p = errorMessage.querySelector('p');
+                    const originalText = p.textContent;
+                    p.textContent = 'Guest Name is required when Room Number is provided.';
+                    showMessage(errorMessage);
+                    setTimeout(() => { p.textContent = originalText; }, 3000);
+                    return;
+                }
+            }
+            
+            submitButton.disabled = true;
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Submitting...';
+
+            let submissions = [];
+
+            const attendantName = attendantNameInput.value.trim();
+
+            if (formMode === 'check-in') {
+                const checkInFormData = new FormData();
+                checkInFormData.append('entry.829031142', attendantName);
+                checkInFormData.append('entry.397217549', carTagInput.value.trim());
+                checkInFormData.append('entry.712526638', document.getElementById('guestName').value.trim());
+                checkInFormData.append('entry.626936939', document.getElementById('roomNumber').value.trim());
+                checkInFormData.append('entry.649767439', document.getElementById('carMake').value.trim());
+                checkInFormData.append('entry.1972256179', document.getElementById('carModel').value.trim());
+                checkInFormData.append('entry.1974586787', document.getElementById('carColor').value.trim());
+                checkInFormData.append('entry.1014905924', document.getElementById('licensePlate').value.trim());
+                checkInFormData.append('entry.1721956859', formatDateForForm(document.getElementById('arrivalDate').value));
+                checkInFormData.append('entry.1517497640', formatDateForForm(document.getElementById('departureDate').value));
+                const checkInUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse';
+                submissions.push(fetch(checkInUrl, { method: 'POST', body: checkInFormData, mode: 'no-cors' }));
+
+                const counterFormData = new FormData();
+                const now = new Date();
+                const pad = (num) => String(num).padStart(2, '0');
+                const hours = pad(now.getHours());
+                const minutes = pad(now.getMinutes());
+                const seconds = pad(now.getSeconds());
+                const month = pad(now.getMonth() + 1);
+                const day = pad(now.getDate());
+                const year = String(now.getFullYear()).slice(-2);
+                const timestamp = `${hours}:${minutes}:${seconds} ${month}.${day}.${year}`;
+                counterFormData.append('entry.16130364', timestamp);
+                const counterUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse';
+                submissions.push(fetch(counterUrl, { method: 'POST', body: counterFormData, mode: 'no-cors' }));
+
+            } else if (formMode === 'check-out') {
+                const checkOutFormData = new FormData();
+                const now = new Date();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const year = String(now.getFullYear()).slice(-2);
+                const systemDate = `${month}.${day}.${year}`;
+                checkOutFormData.append('entry.1845522591', attendantName);
+                checkOutFormData.append('entry.1266499904', carTagInput.value.trim());
+                checkOutFormData.append('entry.1075321922', systemDate);
+                const checkOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse';
+                submissions.push(fetch(checkOutUrl, { method: 'POST', body: checkOutFormData, mode: 'no-cors' }));
+
+            } else if (formMode === 'in-out') {
+                const inOutFormData = new FormData();
+                const status = document.querySelector('input[name="inOutStatus"]:checked').value;
+                inOutFormData.append('entry.1604519976', attendantName);
+                inOutFormData.append('entry.1341342126', carTagInput.value.trim());
+                inOutFormData.append('entry.1317651225', status);
+                const inOutUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse';
+                submissions.push(fetch(inOutUrl, { method: 'POST', body: inOutFormData, mode: 'no-cors' }));
+            }
+            
+            try {
+                await Promise.all(submissions);
+                
+                showMessage(successMessage);
+                clearFormAndPreserveAttendant();
+
+            } catch (error) {
+                console.error('Form submission error:', error);
+                showMessage(errorMessage);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
             switchTab('check-in');
             loadFormState();
-        } 
-        
-        document.addEventListener('DOMContentLoaded', setupAuthentication);
+        });
 
     </script>
 
 </body>
 </html>
-
