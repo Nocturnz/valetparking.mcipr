@@ -50,6 +50,14 @@
             width: 100%;
             border: 1px solid #4B5563;
         }
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px #ef4444; }
+            50% { box-shadow: 0 0 20px #ef4444; }
+            100% { box-shadow: 0 0 5px #ef4444; }
+        }
+        .glowing-red {
+            animation: glowing 1.5s infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
@@ -103,11 +111,14 @@
                 <p class="text-gray-400 mt-2">Valet Parking</p>
             </div>
             
+            <button id="redTagAlertButton" class="hidden w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg mb-4">
+                Red Tags Found
+            </button>
+            
             <div class="flex border border-gray-600 rounded-lg mb-6">
-                <button id="checkInTab" class="tab-button active w-1/4 p-3 rounded-l-lg font-semibold text-sm sm:text-base">Check-In</button>
-                <button id="checkOutTab" class="tab-button w-1/4 p-3 font-semibold text-sm sm:text-base">Check-Out</button>
-                <button id="inOutTab" class="tab-button w-1/4 p-3 font-semibold text-sm sm:text-base">In/Out</button>
-                <button id="redTagTab" class="tab-button w-1/4 p-3 rounded-r-lg font-semibold text-sm sm:text-base">Red Tags</button>
+                <button id="checkInTab" class="tab-button active w-1/3 p-3 rounded-l-lg font-semibold text-sm sm:text-base">Check-In</button>
+                <button id="checkOutTab" class="tab-button w-1/3 p-3 font-semibold text-sm sm:text-base">Check-Out</button>
+                <button id="inOutTab" class="tab-button w-1/3 p-3 rounded-r-lg font-semibold text-sm sm:text-base">In/Out</button>
             </div>
 
             <form id="valetForm">
@@ -184,9 +195,9 @@
 
             <div id="redTagView" class="hidden">
                 <h2 class="text-xl font-semibold text-white text-center mb-4">Red Tagged Cars</h2>
-                <ul id="redTagList" class="bg-gray-700 rounded-lg p-4 space-y-2 text-white max-h-96 overflow-y-auto">
-                    <li class="text-gray-400 text-center">Loading...</li>
-                </ul>
+                <div id="redTagList" class="bg-gray-700 rounded-lg p-4 space-y-2 text-white max-h-96 overflow-y-auto">
+                    <p class="text-gray-400 text-center">Loading...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -258,7 +269,7 @@
         const checkInTab = document.getElementById('checkInTab');
         const checkOutTab = document.getElementById('checkOutTab');
         const inOutTab = document.getElementById('inOutTab');
-        const redTagTab = document.getElementById('redTagTab');
+        const redTagAlertButton = document.getElementById('redTagAlertButton');
 
         const checkInFields = document.getElementById('checkInFields');
         const checkOutFields = document.getElementById('checkOutFields');
@@ -296,9 +307,8 @@
                         const loginDate = localStorage.getItem('loginDate');
 
                         if (loginDate && loginDate !== today) {
-                            // It's a new day, sign out the user
                             auth.signOut();
-                            return; // Stop execution
+                            return;
                         }
 
                         loginContainer.classList.add('hidden');
@@ -316,8 +326,7 @@
                     const password = loginForm.password.value;
                     auth.signInWithEmailAndPassword(email, password)
                         .then(() => {
-                            // On successful login, store the current date.
-                            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                            const today = new Date().toISOString().split('T')[0];
                             localStorage.setItem('loginDate', today);
                         })
                         .catch(error => {
@@ -434,38 +443,46 @@
                 });
             }
 
+            function showMainForm() {
+                valetForm.classList.remove('hidden');
+                redTagView.classList.add('hidden');
+                redTagAlertButton.classList.remove('active', 'bg-red-700');
+            }
+
+            function showRedTagView() {
+                valetForm.classList.add('hidden');
+                redTagView.classList.remove('hidden');
+                redTagAlertButton.classList.add('active', 'bg-red-700');
+                [checkInTab, checkOutTab, inOutTab].forEach(tab => tab.classList.remove('active'));
+            }
+
             function switchTab(newMode) {
+                showMainForm();
                 formMode = newMode;
                 
                 checkInTab.classList.toggle('active', newMode === 'check-in');
                 checkOutTab.classList.toggle('active', newMode === 'check-out');
                 inOutTab.classList.toggle('active', newMode === 'in-out');
-                redTagTab.classList.toggle('active', newMode === 'red-tag');
 
-                valetForm.classList.toggle('hidden', newMode === 'red-tag');
-                redTagView.classList.toggle('hidden', newMode !== 'red-tag');
+                checkInFields.classList.toggle('hidden', newMode !== 'check-in');
+                checkOutFields.classList.toggle('hidden', newMode !== 'check-out');
+                inOutFields.classList.toggle('hidden', newMode !== 'in-out');
+                
+                setRequiredForCheckin(newMode === 'check-in');
 
-                if (newMode !== 'red-tag') {
-                    checkInFields.classList.toggle('hidden', newMode !== 'check-in');
-                    checkOutFields.classList.toggle('hidden', newMode !== 'check-out');
-                    inOutFields.classList.toggle('hidden', newMode !== 'in-out');
-                    
-                    setRequiredForCheckin(newMode === 'check-in');
-
-                    if (newMode === 'check-in') {
-                        submitButton.textContent = 'Submit Car';
-                    } else if (newMode === 'check-out') {
-                        submitButton.textContent = 'Submit Checkout';
-                    } else if (newMode === 'in-out') {
-                        submitButton.textContent = 'Log Status';
-                    }
+                if (newMode === 'check-in') {
+                    submitButton.textContent = 'Submit Car';
+                } else if (newMode === 'check-out') {
+                    submitButton.textContent = 'Submit Checkout';
+                } else if (newMode === 'in-out') {
+                    submitButton.textContent = 'Log Status';
                 }
             }
-
+            
             checkInTab.addEventListener('click', () => switchTab('check-in'));
             checkOutTab.addEventListener('click', () => switchTab('check-out'));
             inOutTab.addEventListener('click', () => switchTab('in-out'));
-            redTagTab.addEventListener('click', () => switchTab('red-tag'));
+            redTagAlertButton.addEventListener('click', showRedTagView);
 
             function showMessage(element, duration = 4000) {
                 element.classList.remove('hidden');
@@ -659,6 +676,41 @@
             cancelScanButton.addEventListener('click', hideScanner);
 
             // --- Red Tag System Logic ---
+
+            async function clearRedTag(tag, element) {
+                element.style.opacity = '0.5';
+                
+                let attendantName = attendantNameInput.value.trim();
+                if (auth && auth.currentUser) {
+                    attendantName = `${attendantName} - ${auth.currentUser.email}`;
+                }
+
+                const clearFormData = new FormData();
+                const now = new Date();
+                const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+                clearFormData.append('entry.1874245135', attendantName);
+                clearFormData.append('entry.1549763158', tag);
+                clearFormData.append('entry.1762194178', timestamp);
+
+                const clearUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc_21nWhZ8j_3i281Fj2G2c98wJ-v8jVqO_J4eP2c8F5G3B4A/formResponse';
+
+                try {
+                    await fetch(clearUrl, { method: 'POST', body: clearFormData, mode: 'no-cors' });
+                    element.remove();
+                    
+                    if (redTagList.children.length === 0) {
+                        redTagAlertButton.classList.add('hidden');
+                        showMainForm();
+                        switchTab('check-in');
+                    }
+                } catch (error) {
+                    console.error('Failed to clear red tag:', error);
+                    alert('Could not clear the tag. Please check your connection.');
+                    element.style.opacity = '1';
+                }
+            }
+
             fetch('/assets/redtag.txt')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -670,26 +722,33 @@
                     console.log('Red Tag list loaded:', redTaggedCars);
 
                     redTagList.innerHTML = ''; 
-                    if (tags.length === 0) {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-                        const day = String(yesterday.getDate()).padStart(2, '0');
-                        const year = String(yesterday.getFullYear()).slice(-2);
-                        const formattedDate = `${month}/${day}/${year}`;
-                        redTagList.innerHTML = `<li class="text-gray-400 text-center">Looks like everyone was charged for the last date (${formattedDate})</li>`;
-                    } else {
+                    if (tags.length > 0) {
+                        redTagAlertButton.classList.remove('hidden');
+                        redTagAlertButton.classList.add('glowing-red');
+
                         tags.forEach(tag => {
                             const li = document.createElement('li');
-                            li.textContent = tag;
-                            li.className = 'p-2 bg-gray-800 rounded';
+                            li.className = 'p-2 bg-gray-800 rounded flex justify-between items-center';
+                            
+                            const span = document.createElement('span');
+                            span.textContent = tag;
+                            li.appendChild(span);
+
+                            const button = document.createElement('button');
+                            button.innerHTML = '&times;';
+                            button.className = 'text-2xl text-gray-400 hover:text-white font-bold leading-none px-2';
+                            button.onclick = () => clearRedTag(tag, li);
+                            li.appendChild(button);
+                            
                             redTagList.appendChild(li);
                         });
+                    } else {
+                         redTagAlertButton.classList.add('hidden');
                     }
                 })
                 .catch(error => {
                     console.error('Failed to load redtag.txt:', error);
-                    redTagList.innerHTML = '<li class="text-red-400 text-center">Could not load list.</li>';
+                    redTagAlertButton.classList.add('hidden');
                 });
 
             carTagInput.addEventListener('blur', () => {
