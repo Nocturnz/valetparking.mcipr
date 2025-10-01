@@ -292,6 +292,15 @@
 
                 auth.onAuthStateChanged(user => {
                     if (user) {
+                        const today = new Date().toISOString().split('T')[0];
+                        const loginDate = localStorage.getItem('loginDate');
+
+                        if (loginDate && loginDate !== today) {
+                            // It's a new day, sign out the user
+                            auth.signOut();
+                            return; // Stop execution
+                        }
+
                         loginContainer.classList.add('hidden');
                         appContainer.style.display = 'flex';
                         initializeAppLogic();
@@ -306,6 +315,11 @@
                     const email = loginForm.email.value;
                     const password = loginForm.password.value;
                     auth.signInWithEmailAndPassword(email, password)
+                        .then(() => {
+                            // On successful login, store the current date.
+                            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                            localStorage.setItem('loginDate', today);
+                        })
                         .catch(error => {
                             console.error("Login failed:", error);
                             loginError.classList.remove('hidden');
