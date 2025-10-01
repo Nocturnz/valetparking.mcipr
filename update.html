@@ -689,11 +689,11 @@
                 const now = new Date();
                 const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 
-                clearFormData.append('entry.1874245135', attendantName);
-                clearFormData.append('entry.1549763158', tag);
-                clearFormData.append('entry.1762194178', timestamp);
+                clearFormData.append('entry.55118666', attendantName);
+                clearFormData.append('entry.1034300842', tag);
+                clearFormData.append('entry.1633986932', timestamp);
 
-                const clearUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc_21nWhZ8j_3i281Fj2G2c98wJ-v8jVqO_J4eP2c8F5G3B4A/formResponse';
+                const clearUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeMbbee1XsdRlCZoD6jkkF6_xByjxkhiFPUwThCGUi9gtuD-g/formResponse';
 
                 try {
                     await fetch(clearUrl, { method: 'POST', body: clearFormData, mode: 'no-cors' });
