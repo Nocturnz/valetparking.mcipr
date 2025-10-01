@@ -1,0 +1,47 @@
+{
+"checkIn": {
+"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSc1028R0YysG8ugZb6Iu4U5fuhHw_TvedO394q-MC6ZKKI1cg/formResponse",
+"entries": {
+"attendantName": "entry.829031142",
+"carTag": "entry.397217549",
+"guestName": "entry.712526638",
+"roomNumber": "entry.626936939",
+"carMake": "entry.649767439",
+"carModel": "entry.1972256179",
+"carColor": "entry.1974586787",
+"licensePlate": "entry.1014905924",
+"arrivalDate": "entry.1721956859",
+"departureDate": "entry.1517497640"
+}
+},
+"counter": {
+"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSfvn0ZN88MLEmWIm6y3OaEgP7RVbW8zn0qeOyYgsZFGOs9n4w/formResponse",
+"entries": {
+"timestamp": "entry.16130364"
+}
+},
+"checkOut": {
+"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSfTKxDM1_2AdjIAfJv8LxUCoUQPnPMCwZpn1h-v9JB8XGJ1xQ/formResponse",
+"entries": {
+"attendantName": "entry.1845522591",
+"carTag": "entry.1266499904",
+"systemDate": "entry.1075321922"
+}
+},
+"inOut": {
+"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSexMNJATc4Um1sJfJigDb50rHqBq_wNWu5DRqvDP6mCZqWifg/formResponse",
+"entries": {
+"attendantName": "entry.1604519976",
+"carTag": "entry.1341342126",
+"status": "entry.1317651225"
+}
+},
+"clearRedTag": {
+"url": "https://www.google.com/search?q=https://docs.google.com/forms/d/e/1FAIpQLSeMbbee1XsdRlCZoD6jkkF6_xByjxkhiFPUwThCGUi9gtuD-g/formResponse",
+"entries": {
+"attendantInfo": "entry.55118666",
+"clearedTag": "entry.1034300842",
+"timestamp": "entry.1633986932"
+}
+}
+}
