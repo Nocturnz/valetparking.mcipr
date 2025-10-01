@@ -300,7 +300,9 @@
                 console.error('Failed to load property config:', error);
                 loginError.textContent = 'Invalid Property Code.';
                 loginError.classList.remove('hidden');
-                if (auth) auth.signOut();
+                if (auth && auth.currentUser) { 
+                    auth.signOut();
+                }
             }
         }
 
@@ -357,33 +359,34 @@
                     signInButton.textContent = 'Signing In...';
 
                     try {
-                        // Step 1: Attempt to sign in with Firebase first.
                         await auth.signInWithEmailAndPassword(email, password);
-                        
-                        // Step 2: If login is successful, THEN check for the property config file.
+                        // onAuthStateChanged will handle the next step
+                    } catch (error) {
+                        console.error("Login failed:", error);
+                        loginError.textContent = 'Invalid credentials.';
+                        loginError.classList.remove('hidden');
+                        signInButton.disabled = false;
+                        signInButton.textContent = 'Sign In';
+                        return; // Stop execution if firebase login fails
+                    }
+                    
+                    // This part now runs only after a successful Firebase login
+                    try {
                         const configResponse = await fetch(`/assets/hotels/${propertyCode}.txt`);
                         if (!configResponse.ok) {
                             throw new Error('Invalid Property Code');
                         }
 
-                        // Step 3: If both are successful, store the session info.
                         const today = new Date().toISOString().split('T')[0];
                         localStorage.setItem('loginDate', today);
                         localStorage.setItem('propertyCode', propertyCode);
-                        // The onAuthStateChanged observer will then pick up the logged-in state and load the app.
+                        // Let onAuthStateChanged reload the app UI.
                         
                     } catch (error) {
-                        console.error("Login process failed:", error);
-
-                        // If the error is an invalid property code, we must sign the user out.
-                        if (error.message === 'Invalid Property Code') {
-                            if (auth && auth.currentUser) {
-                                auth.signOut();
-                            }
-                        }
-                        
-                        loginError.textContent = 'Invalid credentials or property code.';
+                        console.error("Property code validation failed:", error);
+                        loginError.textContent = 'Invalid Property Code.';
                         loginError.classList.remove('hidden');
+                        if (auth.currentUser) auth.signOut(); // Sign out if property code is bad
                         signInButton.disabled = false;
                         signInButton.textContent = 'Sign In';
                     }
@@ -397,7 +400,7 @@
             } catch (error) {
                 console.log(error.message);
                 // --- LOGIN DISABLED ---
-                const propertyCode = 'mcipr'; // Default property code when login is disabled
+                const propertyCode = 'mcipr';
                 signOutButton.classList.add('hidden');
                 loadConfigAndStart(propertyCode);
             }
