@@ -68,7 +68,7 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
 
-    <!-- Login Container (hidden by default unless firebase.txt exists) -->
+    <!-- Login Container -->
     <div id="login-container" class="w-full max-w-sm hidden">
         <div class="bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8">
             <div class="text-center mb-6">
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <!-- Main App Container (shown by default unless firebase.txt exists) -->
+    <!-- Main App Container -->
     <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
         <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
             <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
@@ -337,129 +337,116 @@
 
         // --- Authentication Setup ---
         async function setupAuthentication() {
+            let firebaseConfig;
             try {
                 const response = await fetch('assets/firebase.txt');
                 if (!response.ok) {
-                    throw new Error('Login file not found, disabling authentication.');
+                    throw new Error('Firebase config not found.');
                 }
                 const configText = await response.text();
-                const firebaseConfig = JSON.parse(configText);
+                firebaseConfig = JSON.parse(configText);
+            } catch (error) {
+                console.error('CRITICAL ERROR:', error.message);
+                document.body.innerHTML = `<div class="w-full max-w-md text-center p-8 bg-gray-800 rounded-lg shadow-2xl text-white flex flex-col items-center justify-center min-h-screen">
+                    <h1 class="text-2xl font-bold text-red-400">Application Error</h1>
+                    <p class="mt-4">Could not load Firebase configuration.</p>
+                    <p class="mt-2 text-gray-400">Please ensure 'assets/firebase.txt' is present and correctly formatted.</p>
+                </div>`;
+                return;
+            }
 
-                // --- LOGIN ENABLED ---
-                const app = firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth();
+            // --- LOGIN IS NOW MANDATORY ---
+            const app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
 
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        const today = new Date().toISOString().split('T')[0];
-                        const loginDate = localStorage.getItem('loginDate');
-                        const propertyCode = localStorage.getItem('propertyCode');
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const loginDate = localStorage.getItem('loginDate');
+                    const propertyCode = localStorage.getItem('propertyCode');
 
-                        if (!loginDate || loginDate !== today || !propertyCode) {
-                            auth.signOut();
-                            return;
-                        }
-                        
-                        loadConfigAndStart(propertyCode);
-
-                    } else {
-                        appContainer.style.display = 'none';
-                        loginContainer.classList.remove('hidden');
-                        localStorage.removeItem('loginDate');
-                        localStorage.removeItem('propertyCode');
-                    }
-                });
-
-                validateButton.addEventListener('click', async () => {
-                    const propertyCode = propertyCodeInput.value.toLowerCase().trim();
-                    if (!propertyCode) {
-                        propertyCodeError.textContent = 'Property Code is required.';
-                        propertyCodeError.classList.remove('hidden');
-                        propertyCodeInput.classList.add('border-red-500');
+                    if (!loginDate || loginDate !== today || !propertyCode) {
+                        auth.signOut();
                         return;
                     }
-
-                    validateButton.disabled = true;
-                    validateButton.textContent = '...';
-                    propertyCodeError.classList.add('hidden');
-                    propertyCodeInput.classList.remove('border-red-500', 'border-green-500');
-
-                    try {
-                        const configResponse = await fetch(`assets/hotels/${propertyCode}.txt`);
-                        if (!configResponse.ok) throw new Error('Invalid Property Code');
-                        
-                        document.querySelector('#login-container .property-logo').src = `assets/logos/${propertyCode}.png`;
-                        validatedPropertyCode = propertyCode;
-                        propertyCodeInput.classList.add('border-green-500');
-                        propertyCodeInput.disabled = true;
-                        validateButton.textContent = '✓';
-                        credentialsSection.classList.remove('hidden');
-
-                    } catch (error) {
-                        propertyCodeError.textContent = 'Invalid Property Code';
-                        propertyCodeError.classList.remove('hidden');
-                        propertyCodeInput.classList.add('border-red-500');
-                        validateButton.disabled = false;
-                        validateButton.textContent = 'Validate';
-                    }
-                });
-
-                loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    if (!validatedPropertyCode) return;
-
-                    const email = loginForm.email.value;
-                    const password = loginForm.password.value;
                     
-                    loginError.classList.add('hidden');
-                    const signInButton = document.getElementById('signInButton');
-                    signInButton.disabled = true;
-                    signInButton.textContent = 'Signing In...';
+                    loadConfigAndStart(propertyCode);
 
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                        
-                        const today = new Date().toISOString().split('T')[0];
-                        localStorage.setItem('loginDate', today);
-                        localStorage.setItem('propertyCode', validatedPropertyCode);
-                        
-                    } catch (error) {
-                        console.error("Login failed:", error);
-                        loginError.textContent = 'Invalid email or password.';
-                        loginError.classList.remove('hidden');
-                    } finally {
-                        signInButton.disabled = false;
-                        signInButton.textContent = 'Sign In';
-                    }
-                });
-
-
-                signOutButton.addEventListener('click', () => {
-                    auth.signOut();
-                });
-
-            } catch (error) {
-                console.log(error.message);
-                // --- LOGIN DISABLED ---
-                let propertyCode = window.location.hostname.split('.')[0].toLowerCase();
-                if (propertyCode === 'localhost' || !window.location.hostname || propertyCode.includes('127')) { // More robust check for local dev
-                     const urlParams = new URLSearchParams(window.location.search);
-                     propertyCode = urlParams.get('property')?.toLowerCase();
+                } else {
+                    appContainer.style.display = 'none';
+                    loginContainer.classList.remove('hidden');
+                    localStorage.removeItem('loginDate');
+                    localStorage.removeItem('propertyCode');
                 }
-                
+            });
+
+            validateButton.addEventListener('click', async () => {
+                const propertyCode = propertyCodeInput.value.toLowerCase().trim();
                 if (!propertyCode) {
-                    document.body.innerHTML = `<div class="w-full max-w-md text-center p-8 bg-gray-800 rounded-lg shadow-2xl text-white flex flex-col items-center justify-center min-h-screen">
-                        <h1 class="text-2xl font-bold text-red-400">Configuration Error</h1>
-                        <p class="mt-4">No property code could be determined.</p>
-                        <p class="mt-2 text-gray-400">Please provide the code in the URL:</p>
-                        <code class="mt-2 p-2 bg-gray-700 rounded-md block text-sm w-full">your-url.com?property=mcipr</code>
-                        </div>`;
+                    propertyCodeError.textContent = 'Property Code is required.';
+                    propertyCodeError.classList.remove('hidden');
+                    propertyCodeInput.classList.add('border-red-500');
                     return;
                 }
 
-                signOutButton.classList.add('hidden');
-                loadConfigAndStart(propertyCode);
-            }
+                validateButton.disabled = true;
+                validateButton.textContent = '...';
+                propertyCodeError.classList.add('hidden');
+                propertyCodeInput.classList.remove('border-red-500', 'border-green-500');
+
+                try {
+                    const configResponse = await fetch(`assets/hotels/${propertyCode}.txt`);
+                    if (!configResponse.ok) throw new Error('Invalid Property Code');
+                    
+                    document.querySelector('#login-container .property-logo').src = `assets/logos/${propertyCode}.png`;
+                    validatedPropertyCode = propertyCode;
+                    propertyCodeInput.classList.add('border-green-500');
+                    propertyCodeInput.disabled = true;
+                    validateButton.textContent = '✓';
+                    credentialsSection.classList.remove('hidden');
+
+                } catch (error) {
+                    propertyCodeError.textContent = 'Invalid Property Code';
+                    propertyCodeError.classList.remove('hidden');
+                    propertyCodeInput.classList.add('border-red-500');
+                    validateButton.disabled = false;
+                    validateButton.textContent = 'Validate';
+                }
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!validatedPropertyCode) return;
+
+                const email = loginForm.email.value;
+                const password = loginForm.password.value;
+                
+                loginError.classList.add('hidden');
+                const signInButton = document.getElementById('signInButton');
+                signInButton.disabled = true;
+                signInButton.textContent = 'Signing In...';
+
+                try {
+                    await auth.signInWithEmailAndPassword(email, password);
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    localStorage.setItem('loginDate', today);
+                    localStorage.setItem('propertyCode', validatedPropertyCode);
+                    
+                } catch (error) {
+                    console.error("Login failed:", error);
+                    loginError.textContent = 'Invalid email or password.';
+                    loginError.classList.remove('hidden');
+                } finally {
+                    signInButton.disabled = false;
+                    signInButton.textContent = 'Sign In';
+                }
+            });
+
+
+            signOutButton.addEventListener('click', () => {
+                auth.signOut();
+            });
         }
 
         // --- Main App Logic ---
