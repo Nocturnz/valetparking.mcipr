@@ -54,8 +54,8 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen px-4">
 
-    <!-- Login Container -->
-    <div id="login-container" class="w-full max-w-sm">
+    <!-- Login Container (hidden by default unless login.txt exists) -->
+    <div id="login-container" class="w-full max-w-sm hidden">
         <div class="bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8">
             <div class="text-center mb-6">
                 <img src="assets/logo.png" alt="Logo" class="mx-auto h-12 w-auto">
@@ -82,7 +82,7 @@
         </div>
     </div>
 
-    <!-- Main App Container (Hidden by default) -->
+    <!-- Main App Container (shown by default unless login.txt exists) -->
     <div id="app-container" class="hidden w-full flex justify-center py-6 sm:py-10">
         <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 relative">
             <button id="signOutButton" class="absolute top-4 left-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 z-10" title="Sign Out">
@@ -232,20 +232,6 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZOElEjgaAxXFn1tQrtx5PAMTW4PPv20g",
-            authDomain: "valetparking-mcipr.firebaseapp.com",
-            projectId: "valetparking-mcipr",
-            storageBucket: "valetparking-mcipr.appspot.com",
-            messagingSenderId: "813115061999",
-            appId: "1:813115061999:web:14f9471d780cfabf180d1a",
-            measurementId: "G-KPEWMSWV2M"
-        };
-
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
         // --- DOM Elements ---
         const loginContainer = document.getElementById('login-container');
         const appContainer = document.getElementById('app-container');
@@ -289,42 +275,58 @@
         let formMode = 'check-in';
         let currentConfirmAction = null;
 
-        // --- Authentication Logic ---
-        
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // User is signed in.
-                loginContainer.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                // Set attendant name from user account
-                attendantNameInput.value = user.displayName || user.email;
-                // Initialize the main application logic
-                initializeAppLogic();
-            } else {
-                // User is signed out.
-                appContainer.classList.add('hidden');
-                loginContainer.classList.remove('hidden');
-            }
-        });
+        // --- Authentication Setup ---
+        async function setupAuthentication() {
+            try {
+                const response = await fetch('/assets/login.txt');
+                if (!response.ok) {
+                    throw new Error('Login file not found, disabling authentication.');
+                }
+                const configText = await response.text();
+                const firebaseConfig = JSON.parse(configText);
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = loginForm.email.value;
-            const password = loginForm.password.value;
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(error => {
-                    console.error("Login failed:", error);
-                    loginError.classList.remove('hidden');
+                // --- LOGIN ENABLED ---
+                const app = firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        loginContainer.classList.add('hidden');
+                        appContainer.style.display = 'flex';
+                        attendantNameInput.value = user.displayName || user.email;
+                        initializeAppLogic();
+                    } else {
+                        appContainer.style.display = 'none';
+                        loginContainer.classList.remove('hidden');
+                    }
                 });
-        });
-        
-        signOutButton.addEventListener('click', () => {
-            auth.signOut();
-        });
 
-        // --- Main App Logic (runs after successful login) ---
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = loginForm.email.value;
+                    const password = loginForm.password.value;
+                    auth.signInWithEmailAndPassword(email, password)
+                        .catch(error => {
+                            console.error("Login failed:", error);
+                            loginError.classList.remove('hidden');
+                        });
+                });
 
+                signOutButton.addEventListener('click', () => {
+                    auth.signOut();
+                });
+
+            } catch (error) {
+                console.log(error.message);
+                // --- LOGIN DISABLED ---
+                loginContainer.classList.add('hidden');
+                appContainer.style.display = 'flex';
+                signOutButton.classList.add('hidden');
+                initializeAppLogic();
+            }
+        }
+
+        // --- Main App Logic (runs after successful login or if login is disabled) ---
         function initializeAppLogic() {
             function showConfirmation(message, callback) {
                 confirmationMessage.textContent = message;
@@ -380,7 +382,9 @@
                 const savedState = localStorage.getItem('valetFormState');
                 if (savedState) {
                     const state = JSON.parse(savedState);
-                    // Don't load attendant name from storage, as it's set by login
+                    if (!auth.currentUser) { // Only load attendant name if not logged in
+                         attendantNameInput.value = state.attendantName || '';
+                    }
                     carTagInput.value = state.carTag || '';
                     document.getElementById('guestName').value = state.guestName || '';
                     document.getElementById('roomNumber').value = state.roomNumber || '';
@@ -399,7 +403,9 @@
             function clearFormAndPreserveAttendant() {
                 const currentAttendantName = attendantNameInput.value;
                 valetForm.reset(); 
-                attendantNameInput.value = currentAttendantName;
+                if (auth.currentUser) {
+                    attendantNameInput.value = currentAttendantName;
+                }
                 carTagInput.focus();
                 saveFormState(); 
             }
@@ -688,7 +694,9 @@
             // Initial setup
             switchTab('check-in');
             loadFormState();
-        } // End of initializeAppLogic
+        } 
+        
+        document.addEventListener('DOMContentLoaded', setupAuthentication);
 
     </script>
 
